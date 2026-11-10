@@ -93,7 +93,9 @@ Feature: Company switch
     And I answer the company switch warning with "Yes"
     Then I should see the message "Product added to the cart."
     When I add the product "classic" to the cart
-    Then the company switch warning should not be visible
+    # Waits for the API answer: before it arrives, the warning is hidden and the counter is already "2".
+    Then I should see the message "Product added to the cart."
+    And the company switch warning should not be visible
     And the cart counter should show "2"
 
   Scenario: TC-WEB-SWT-010 - Counter matches the cart after Yes

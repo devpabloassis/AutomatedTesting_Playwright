@@ -55,6 +55,7 @@ jobs:
           fi
           grep -E "^\s+[0-9]+ (passed|failed)" known-bugs.log
           if ! grep -qE "^\s+15 failed" known-bugs.log || grep -qE "^\s+[0-9]+ passed" known-bugs.log; then
+            grep "✓" known-bugs.log || true
             echo "::error::Expected exactly 15 failures and no passes in the @known_bug scenarios."
             exit 1
           fi
