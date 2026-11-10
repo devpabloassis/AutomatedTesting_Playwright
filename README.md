@@ -1,5 +1,7 @@
 # Test Automation with Playwright
 
+[![Tests](https://github.com/devpabloassis/AutomatedTesting_Playwright/actions/workflows/tests.yml/badge.svg)](https://github.com/devpabloassis/AutomatedTesting_Playwright/actions/workflows/tests.yml)
+
 **English** | [Português (Brasil)](README.pt-BR.md)
 
 **API** and **Web** test automation project built with [Playwright](https://playwright.dev), TypeScript and **BDD** (Gherkin).
@@ -17,6 +19,7 @@ The repository has two parts:
 - **Data-driven tests** with `Scenario Outline` (field domain and SQL injection payloads).
 - **Parallel and isolated:** each scenario creates its own user through the API; persistence scenarios start their own server and database.
 - **Known defects tracked with tags** (`@known_bug`), so the suite separates real regressions from expected failures.
+- **Continuous integration** with GitHub Actions: type check, the full suite without known defects as the gate, and a check that the 15 known defects still fail.
 - Reports in HTML and JUnit, with traces and screenshots on failure.
 
 ## The system under test

@@ -1,5 +1,7 @@
 # Automação de Testes com Playwright
 
+[![Tests](https://github.com/devpabloassis/AutomatedTesting_Playwright/actions/workflows/tests.yml/badge.svg)](https://github.com/devpabloassis/AutomatedTesting_Playwright/actions/workflows/tests.yml)
+
 [English](README.md) | **Português (Brasil)**
 
 Projeto de automação de testes de **API** e **Web** com [Playwright](https://playwright.dev), TypeScript e **BDD** (Gherkin).
@@ -19,6 +21,7 @@ O repositório tem duas partes:
 - **Testes orientados a dados** com `Scenario Outline` (domínio de campos e payloads de SQL injection).
 - **Paralelos e isolados:** cada cenário cria o próprio usuário pela API; os cenários de persistência sobem servidor e banco próprios.
 - **Defeitos conhecidos marcados com tag** (`@known_bug`), separando regressões reais de falhas esperadas.
+- **Integração contínua** com GitHub Actions: typecheck, a suíte sem os defeitos conhecidos como critério de aprovação e a verificação de que os 15 defeitos conhecidos continuam falhando.
 - Relatórios HTML e JUnit, com trace e screenshot nas falhas.
 
 ## O sistema testado
