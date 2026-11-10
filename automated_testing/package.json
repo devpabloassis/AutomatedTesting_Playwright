@@ -1,0 +1,35 @@
+{
+  "name": "marketplace-comida-testes",
+  "version": "1.0.0",
+  "description": "Testes automatizados de API e Web com Playwright",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "bddgen && playwright test",
+    "test:api": "bddgen && playwright test --project=api",
+    "test:web": "bddgen && playwright test --project=web-chromium",
+    "test:smoke": "bddgen && playwright test --grep @smoke",
+    "test:regression": "bddgen && playwright test --grep @regression",
+    "test:login": "bddgen && playwright test --grep @feature_login",
+    "test:carrinho": "bddgen && playwright test --grep @feature_carrinho",
+    "test:domain": "bddgen && playwright test --grep @domain",
+    "test:sqli": "bddgen && playwright test --grep @sqli",
+    "test:contract": "bddgen && playwright test --grep @contract",
+    "test:sem-bugs": "bddgen && playwright test --grep-invert @known_bug",
+    "test:bugs": "bddgen && playwright test --grep @known_bug",
+    "test:ui": "bddgen && playwright test --ui",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit",
+    "bddgen": "bddgen"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^22.20.5",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "playwright-bdd": "^9.2.1",
+    "typescript": "^7.0.2"
+  }
+}

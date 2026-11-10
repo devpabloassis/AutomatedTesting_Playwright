@@ -1,0 +1,10 @@
+{
+  "name": "marketplace-comida",
+  "version": "1.0.0",
+  "description": "Sistema-alvo para automação de testes",
+  "private": true,
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node src/server.js"
+  }
+}

@@ -1,0 +1,8 @@
+node_modules/
+data/
+.test-data/
+.auth/
+.env
+playwright-report/
+test-results/
+.features-gen/
