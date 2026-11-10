@@ -1,159 +1,159 @@
-# Documentação da API — Marketplace de Comida
+# API Documentation — Food Marketplace
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| URL base | `http://127.0.0.1:3000/api` (testes: `http://127.0.0.1:3100/api`) |
-| Formato | JSON em requisições e respostas (`Content-Type: application/json; charset=utf-8`) |
-| Autenticação | Não há token. O usuário é identificado pelo `:username` da rota |
-| Valores monetários | Inteiros em centavos (`5290` = R$ 52,90) |
-| Contratos | JSON Schemas em [`automated_testing/contracts/`](../automated_testing/contracts/) |
-| Regras de negócio | [`HISTORIA_DO_PRODUTO.md`](./HISTORIA_DO_PRODUTO.md) |
-| Cenários de teste | [`REPOSITORIO_TESTES_API.md`](./REPOSITORIO_TESTES_API.md) |
+| Base URL | `http://127.0.0.1:3000/api` (tests: `http://127.0.0.1:3100/api`) |
+| Format | JSON in requests and responses (`Content-Type: application/json; charset=utf-8`) |
+| Authentication | No token. The user is identified by the `:username` in the route |
+| Monetary values | Integers in cents (`5290` = $52.90) |
+| Contracts | JSON Schemas in [`automated_testing/contracts/`](../automated_testing/contracts/) |
+| Business rules | [`PRODUCT_SPEC.md`](./PRODUCT_SPEC.md) |
+| Test cases | [`API_TEST_CASES.md`](./API_TEST_CASES.md) |
 
-## Sumário
+## Summary
 
-| # | Método | Rota | Finalidade | Sucesso | Contrato de sucesso |
+| # | Method | Route | Purpose | Success | Success contract |
 |---|---|---|---|---|---|
-| 1 | POST | [`/users`](#1-post-users--criar-usuário) | Criar usuário | 201 | `user` |
-| 2 | GET | [`/users/:username`](#2-get-usersusername--consultar-usuário) | Consultar usuário | 200 | `user` |
-| 3 | POST | [`/login`](#3-post-login--fazer-login) | Validar credenciais | 200 | `user` |
-| 4 | GET | [`/companies`](#4-get-companies--listar-empresas) | Listar empresas e produtos | 200 | `companies` |
-| 5 | GET | [`/companies/:companyId`](#5-get-companiescompanyid--consultar-empresa) | Consultar uma empresa | 200 | `company` |
-| 6 | GET | [`/users/:username/cart`](#6-get-usersusernamecart--consultar-carrinho) | Consultar carrinho | 200 | `cart` |
-| 7 | POST | [`/users/:username/cart/items`](#7-post-usersusernamecartitems--adicionar-item) | Adicionar item | 201 | `cart` |
-| 8 | PATCH | [`/users/:username/cart/items/:itemId`](#8-patch-usersusernamecartitemsitemid--alterar-quantidade) | Alterar quantidade | 200 | `cart` |
-| 9 | DELETE | [`/users/:username/cart/items/:itemId`](#9-delete-usersusernamecartitemsitemid--excluir-item) | Excluir item | 200 | `cart` |
-| 10 | POST | [`/users/:username/cart/checkout`](#10-post-usersusernamecartcheckout--finalizar-pedido) | Finalizar pedido | 200 | `checkout` |
-| 11 | POST | [`/users/:username/cart/pay`](#11-post-usersusernamecartpay--pagar) | Pagar (fake) | 200 | `payment` |
+| 1 | POST | [`/users`](#1-post-users--create-user) | Create user | 201 | `user` |
+| 2 | GET | [`/users/:username`](#2-get-usersusername--fetch-user) | Fetch user | 200 | `user` |
+| 3 | POST | [`/login`](#3-post-login--log-in) | Validate credentials | 200 | `user` |
+| 4 | GET | [`/companies`](#4-get-companies--list-companies) | List companies and products | 200 | `companies` |
+| 5 | GET | [`/companies/:companyId`](#5-get-companiescompanyid--fetch-company) | Fetch one company | 200 | `company` |
+| 6 | GET | [`/users/:username/cart`](#6-get-usersusernamecart--fetch-cart) | Fetch cart | 200 | `cart` |
+| 7 | POST | [`/users/:username/cart/items`](#7-post-usersusernamecartitems--add-item) | Add item | 201 | `cart` |
+| 8 | PATCH | [`/users/:username/cart/items/:itemId`](#8-patch-usersusernamecartitemsitemid--update-quantity) | Update quantity | 200 | `cart` |
+| 9 | DELETE | [`/users/:username/cart/items/:itemId`](#9-delete-usersusernamecartitemsitemid--remove-item) | Remove item | 200 | `cart` |
+| 10 | POST | [`/users/:username/cart/checkout`](#10-post-usersusernamecartcheckout--check-out) | Check out | 200 | `checkout` |
+| 11 | POST | [`/users/:username/cart/pay`](#11-post-usersusernamecartpay--pay) | Pay (fake) | 200 | `payment` |
 
-## Regras comuns
+## Common rules
 
-### Formato de erro
+### Error format
 
-Toda resposta de erro segue o contrato `error`:
+Every error response follows the `error` contract:
 
 ```json
-{ "code": "USER_NOT_FOUND", "message": "Usuário não encontrado." }
+{ "code": "USER_NOT_FOUND", "message": "User not found." }
 ```
 
-| Código | Status | Quando ocorre |
+| Code | Status | When it happens |
 |---|---|---|
-| `VALIDATION_ERROR` | 400 | Campo fora do domínio, JSON inválido, corpo maior que 100 KB ou URL inválida |
-| `INVALID_CREDENTIALS` | 401 | Usuário ou senha não conferem |
-| `USER_NOT_FOUND` | 404 | O `:username` não existe |
-| `COMPANY_NOT_FOUND` | 404 | O `:companyId` não existe |
-| `ITEM_NOT_FOUND` | 404 | O `:itemId` não existe no carrinho do usuário |
-| `NOT_FOUND` | 404 | Rota inexistente |
-| `METHOD_NOT_ALLOWED` | 405 | A rota existe, mas não aceita o método |
-| `USER_ALREADY_EXISTS` | 409 | Nome de usuário já cadastrado |
-| `CART_COMPANY_CONFLICT` | 409 | O item é de outra empresa e a troca não foi confirmada |
-| `QUANTITY_LIMIT_EXCEEDED` | 422 | A soma das quantidades do item passaria de 99 |
-| `CART_EMPTY` | 422 | Finalizar ou pagar um carrinho vazio |
-| `CART_MIXED_COMPANIES` | 422 | Carrinho com itens de empresas diferentes |
-| `INTERNAL_ERROR` | 500 | Erro inesperado |
+| `VALIDATION_ERROR` | 400 | Field outside its domain, invalid JSON, body larger than 100 KB or invalid URL |
+| `INVALID_CREDENTIALS` | 401 | Username or password do not match |
+| `USER_NOT_FOUND` | 404 | The `:username` does not exist |
+| `COMPANY_NOT_FOUND` | 404 | The `:companyId` does not exist |
+| `ITEM_NOT_FOUND` | 404 | The `:itemId` does not exist in the user's cart |
+| `NOT_FOUND` | 404 | Non-existent route |
+| `METHOD_NOT_ALLOWED` | 405 | The route exists but does not accept the method |
+| `USER_ALREADY_EXISTS` | 409 | Username already registered |
+| `CART_COMPANY_CONFLICT` | 409 | The item belongs to another company and the switch was not confirmed |
+| `QUANTITY_LIMIT_EXCEEDED` | 422 | The item quantity would exceed 99 |
+| `CART_EMPTY` | 422 | Checking out or paying for an empty cart |
+| `CART_MIXED_COMPANIES` | 422 | Cart with items from different companies |
+| `INTERNAL_ERROR` | 500 | Unexpected error |
 
-### Corpo da requisição
+### Request body
 
-- Quando enviado, deve ser um **objeto** JSON. Lista, texto ou `null` retornam 400 `VALIDATION_ERROR`.
-- Corpo vazio equivale a `{}`.
-- O limite é de 100 KB.
+- When sent, it must be a JSON **object**. An array, a string or `null` returns 400 `VALIDATION_ERROR`.
+- An empty body is treated as `{}`.
+- The size limit is 100 KB.
 
-### Tratamento de entrada
+### Input handling
 
-A API valida apenas o **domínio** dos campos (tipo, tamanho e caracteres permitidos). Não existe filtro específico para SQL injection: um payload é tratado como texto comum. Os dados são gravados em arquivo JSON, sem banco SQL.
+The API validates only the **domain** of each field (type, length and allowed characters). There is no specific SQL injection filter: a payload is treated as plain text. Data is stored in a JSON file, with no SQL database.
 
-### Contrato da resposta
+### Response contract
 
-Os contratos não aceitam campos a mais (`additionalProperties: false`). Um campo novo na resposta é uma quebra de contrato e precisa ser combinado com os consumidores antes de ser publicado.
+The contracts do not accept extra fields (`additionalProperties: false`). A new field in a response is a contract break and must be agreed with consumers before it is released.
 
 ---
 
-## 1. `POST /users` — Criar usuário
+## 1. `POST /users` — Create user
 
-Regras: RN-18, RN-19.
+Rules: BR-18, BR-19.
 
-**Corpo**
+**Body**
 
-| Campo | Tipo | Obrigatório | Domínio |
+| Field | Type | Required | Domain |
 |---|---|---|---|
-| `username` | string | Sim | 3 a 30 caracteres: `A-Z`, `a-z`, `0-9` e `_` |
-| `password` | string | Sim | No mínimo 8 caracteres, qualquer caractere |
+| `username` | string | Yes | 3 to 30 characters: `A-Z`, `a-z`, `0-9` and `_` |
+| `password` | string | Yes | At least 8 characters, any character |
 
 ```json
-{ "username": "novo_usuario", "password": "senhaSegura1" }
+{ "username": "new_user", "password": "securePass1" }
 ```
 
-**Resposta 201** — contrato `user`
+**Response 201** — `user` contract
 
 ```json
-{ "username": "novo_usuario", "createdAt": "2026-11-09T18:56:00.000Z" }
+{ "username": "new_user", "createdAt": "2026-11-09T18:56:00.000Z" }
 ```
 
-A senha é gravada com hash e nunca é retornada.
+The password is stored as a hash and is never returned.
 
-**Erros**
+**Errors**
 
-| Status | Código | Causa |
+| Status | Code | Cause |
 |---|---|---|
-| 400 | `VALIDATION_ERROR` | `username` ou `password` fora do domínio |
-| 409 | `USER_ALREADY_EXISTS` | `username` já cadastrado (diferencia maiúsculas) |
+| 400 | `VALIDATION_ERROR` | `username` or `password` outside its domain |
+| 409 | `USER_ALREADY_EXISTS` | `username` already registered (case-sensitive) |
 
-## 2. `GET /users/:username` — Consultar usuário
+## 2. `GET /users/:username` — Fetch user
 
-**Parâmetros:** `username`, comparado de forma exata.
+**Parameters:** `username`, compared exactly.
 
-**Resposta 200** — contrato `user`
+**Response 200** — `user` contract
 
 ```json
 { "username": "user_manual", "createdAt": "2026-11-09T12:00:00.000Z" }
 ```
 
-**Erros:** 404 `USER_NOT_FOUND`.
+**Errors:** 404 `USER_NOT_FOUND`.
 
-## 3. `POST /login` — Fazer login
+## 3. `POST /login` — Log in
 
-Regras: RN-02, RN-03.
+Rules: BR-02, BR-03.
 
-**Corpo**
+**Body**
 
-| Campo | Tipo | Obrigatório |
+| Field | Type | Required |
 |---|---|---|
-| `username` | string | Sim |
-| `password` | string | Sim |
+| `username` | string | Yes |
+| `password` | string | Yes |
 
 ```json
 { "username": "user_manual", "password": "loveMetalSongs@" }
 ```
 
-**Resposta 200** — contrato `user`, igual à consulta de usuário.
+**Response 200** — `user` contract, same as fetching a user.
 
-**Erros**
+**Errors**
 
-| Status | Código | Causa |
+| Status | Code | Cause |
 |---|---|---|
-| 400 | `VALIDATION_ERROR` | `username` ou `password` ausente ou que não é texto |
-| 401 | `INVALID_CREDENTIALS` | Usuário inexistente ou senha incorreta. A mensagem é a mesma nos dois casos |
+| 400 | `VALIDATION_ERROR` | `username` or `password` missing or not a string |
+| 401 | `INVALID_CREDENTIALS` | Non-existent user or wrong password. The message is the same in both cases |
 
-## 4. `GET /companies` — Listar empresas
+## 4. `GET /companies` — List companies
 
-Regra: RN-01. Não exige login.
+Rule: BR-01. No login required.
 
-**Resposta 200** — contrato `companies`: lista de empresas, cada uma no formato do contrato `company`.
+**Response 200** — `companies` contract: a list of companies, each one in the `company` contract format.
 
 ```json
 [
   {
-    "id": "pizzaria",
-    "name": "Pizzaria Forno Nobre",
-    "description": "Pizzas assadas no forno a lenha.",
+    "id": "pizzeria",
+    "name": "Noble Oven Pizzeria",
+    "description": "Wood-fired oven pizzas.",
     "products": [
       {
-        "id": "portuguesa",
-        "name": "Portuguesa",
+        "id": "supreme",
+        "name": "Supreme",
         "options": [
-          { "id": "P", "label": "Pequeno", "priceCents": 3890 },
-          { "id": "M", "label": "Médio", "priceCents": 5290 },
-          { "id": "G", "label": "Grande", "priceCents": 6690 }
+          { "id": "S", "label": "Small", "priceCents": 3890 },
+          { "id": "M", "label": "Medium", "priceCents": 5290 },
+          { "id": "L", "label": "Large", "priceCents": 6690 }
         ]
       }
     ]
@@ -161,23 +161,23 @@ Regra: RN-01. Não exige login.
 ]
 ```
 
-Empresas: `pizzaria`, `hamburgueria`, `japonesa` e `sucos`, com 4 produtos cada.
+Companies: `pizzeria`, `burgers`, `japanese` and `juices`, with 4 products each.
 
-> **Defeito intencional (BUG-04):** cada empresa da lista também traz o campo interno `commissionPercent`, que não faz parte do contrato. O cenário `CT-API-CON-008` falha por isso.
+> **Intentional defect (BUG-04):** each company in the list also has the internal field `commissionPercent`, which is not part of the contract. Scenario `TC-API-CON-008` fails because of it.
 
-## 5. `GET /companies/:companyId` — Consultar empresa
+## 5. `GET /companies/:companyId` — Fetch company
 
-**Parâmetros:** `companyId`, comparado de forma exata (`Pizzaria` não encontra `pizzaria`).
+**Parameters:** `companyId`, compared exactly (`Pizzeria` does not match `pizzeria`).
 
-**Resposta 200** — contrato `company`: um único objeto, no mesmo formato de cada elemento da listagem.
+**Response 200** — `company` contract: a single object, in the same format as each element of the list.
 
-**Erros:** 404 `COMPANY_NOT_FOUND`.
+**Errors:** 404 `COMPANY_NOT_FOUND`.
 
-## 6. `GET /users/:username/cart` — Consultar carrinho
+## 6. `GET /users/:username/cart` — Fetch cart
 
-Regras: RN-04, RN-12.
+Rules: BR-04, BR-12.
 
-**Resposta 200** — contrato `cart`
+**Response 200** — `cart` contract
 
 ```json
 {
@@ -185,150 +185,150 @@ Regras: RN-04, RN-12.
   "items": [
     {
       "id": "6f1c2a4e-0d6b-4c55-9a3e-2b7d1f0c9e11",
-      "companyId": "pizzaria",
-      "companyName": "Pizzaria Forno Nobre",
-      "productId": "portuguesa",
-      "productName": "Portuguesa",
+      "companyId": "pizzeria",
+      "companyName": "Noble Oven Pizzeria",
+      "productId": "supreme",
+      "productName": "Supreme",
       "optionId": "M",
-      "optionLabel": "Médio",
+      "optionLabel": "Medium",
       "unitPriceCents": 5290,
       "quantity": 2,
       "subtotalCents": 10580
     }
   ],
-  "companyIds": ["pizzaria"],
+  "companyIds": ["pizzeria"],
   "hasMixedCompanies": false,
   "totalItems": 2,
   "totalCents": 10580
 }
 ```
 
-| Campo | Significado |
+| Field | Meaning |
 |---|---|
-| `items[].id` | UUID do item. É o `:itemId` usado para alterar e excluir |
+| `items[].id` | Item UUID. It is the `:itemId` used to update and remove |
 | `subtotalCents` | `unitPriceCents × quantity` |
-| `companyIds` | Empresas presentes no carrinho, sem repetição |
-| `hasMixedCompanies` | `true` quando há mais de uma empresa |
-| `totalItems` | Soma das quantidades. É o número exibido no contador do cabeçalho |
-| `totalCents` | Soma dos subtotais |
+| `companyIds` | Companies in the cart, without repetition |
+| `hasMixedCompanies` | `true` when there is more than one company |
+| `totalItems` | Sum of the quantities. It is the number shown in the header counter |
+| `totalCents` | Sum of the subtotals |
 
-**Erros:** 404 `USER_NOT_FOUND`.
+**Errors:** 404 `USER_NOT_FOUND`.
 
-## 7. `POST /users/:username/cart/items` — Adicionar item
+## 7. `POST /users/:username/cart/items` — Add item
 
-Regras: RN-05 a RN-10.
+Rules: BR-05 to BR-10.
 
-**Corpo**
+**Body**
 
-| Campo | Tipo | Obrigatório | Domínio |
+| Field | Type | Required | Domain |
 |---|---|---|---|
-| `companyId` | string | Sim | Id exato de uma empresa |
-| `productId` | string | Sim | Id exato de um produto dessa empresa |
-| `optionId` | string | Sim | `P`, `M` ou `G` (produtos com tamanho) ou `U` (opção única) |
-| `quantity` | integer | Não (padrão 1) | 1 a 99 |
-| `replaceCart` | boolean | Não (padrão `false`) | Somente `true` confirma a troca de empresa e deve limpar o carrinho |
+| `companyId` | string | Yes | Exact id of a company |
+| `productId` | string | Yes | Exact id of a product of that company |
+| `optionId` | string | Yes | `S`, `M` or `L` (sized products) or `R` (single option) |
+| `quantity` | integer | No (default 1) | 1 to 99 |
+| `replaceCart` | boolean | No (default `false`) | Only `true` confirms the company switch and must clear the cart |
 
 ```json
-{ "companyId": "pizzaria", "productId": "portuguesa", "optionId": "M", "quantity": 1 }
+{ "companyId": "pizzeria", "productId": "supreme", "optionId": "M", "quantity": 1 }
 ```
 
-- O mesmo produto e opção soma a quantidade ao item existente.
-- Produto de outra empresa, sem `replaceCart: true`, retorna 409 e o carrinho não muda.
+- The same product and option adds the quantity to the existing item.
+- A product from another company, without `replaceCart: true`, returns 409 and the cart does not change.
 
-**Resposta 201** — contrato `cart`, com o carrinho atualizado.
+**Response 201** — `cart` contract, with the updated cart.
 
-**Erros**
+**Errors**
 
-| Status | Código | Causa |
+| Status | Code | Cause |
 |---|---|---|
-| 400 | `VALIDATION_ERROR` | Empresa, produto ou opção inválidos, ou `quantity` fora de 1 a 99 |
-| 404 | `USER_NOT_FOUND` | Usuário inexistente |
-| 409 | `CART_COMPANY_CONFLICT` | Item de outra empresa sem confirmação |
-| 422 | `QUANTITY_LIMIT_EXCEEDED` | A soma passaria de 99 |
+| 400 | `VALIDATION_ERROR` | Invalid company, product or option, or `quantity` outside 1 to 99 |
+| 404 | `USER_NOT_FOUND` | Non-existent user |
+| 409 | `CART_COMPANY_CONFLICT` | Item from another company without confirmation |
+| 422 | `QUANTITY_LIMIT_EXCEEDED` | The sum would exceed 99 |
 
-> **Defeito intencional (BUG-01):** com `replaceCart: true`, os itens anteriores não são removidos. O carrinho fica com empresas diferentes.
+> **Intentional defect (BUG-01):** with `replaceCart: true`, the previous items are not removed. The cart ends up with different companies.
 
-## 8. `PATCH /users/:username/cart/items/:itemId` — Alterar quantidade
+## 8. `PATCH /users/:username/cart/items/:itemId` — Update quantity
 
-Regras: RN-10, RN-11.
+Rules: BR-10, BR-11.
 
-**Corpo**
+**Body**
 
-| Campo | Tipo | Obrigatório | Domínio |
+| Field | Type | Required | Domain |
 |---|---|---|---|
-| `quantity` | integer | Sim | 1 a 99 |
+| `quantity` | integer | Yes | 1 to 99 |
 
 ```json
 { "quantity": 3 }
 ```
 
-**Resposta 200** — contrato `cart`.
+**Response 200** — `cart` contract.
 
-**Erros**
+**Errors**
 
-| Status | Código | Causa |
+| Status | Code | Cause |
 |---|---|---|
-| 400 | `VALIDATION_ERROR` | `quantity` ausente ou fora de 1 a 99 |
-| 404 | `USER_NOT_FOUND` / `ITEM_NOT_FOUND` | Usuário ou item inexistente |
+| 400 | `VALIDATION_ERROR` | `quantity` missing or outside 1 to 99 |
+| 404 | `USER_NOT_FOUND` / `ITEM_NOT_FOUND` | Non-existent user or item |
 
-> **Defeito intencional (BUG-02):** a quantidade é gravada em dobro (`3` vira `6`).
+> **Intentional defect (BUG-02):** the quantity is stored doubled (`3` becomes `6`).
 
-## 9. `DELETE /users/:username/cart/items/:itemId` — Excluir item
+## 9. `DELETE /users/:username/cart/items/:itemId` — Remove item
 
-Regra: RN-13. Sem corpo.
+Rule: BR-13. No body.
 
-**Resposta 200** — contrato `cart`, sem o item excluído.
+**Response 200** — `cart` contract, without the removed item.
 
-**Erros:** 404 `USER_NOT_FOUND` / `ITEM_NOT_FOUND`.
+**Errors:** 404 `USER_NOT_FOUND` / `ITEM_NOT_FOUND`.
 
-## 10. `POST /users/:username/cart/checkout` — Finalizar pedido
+## 10. `POST /users/:username/cart/checkout` — Check out
 
-Regras: RN-14 a RN-16. Sem corpo. O carrinho não é alterado.
+Rules: BR-14 to BR-16. No body. The cart is not changed.
 
-**Resposta 200** — contrato `checkout`
+**Response 200** — `checkout` contract
 
 ```json
 { "status": "READY_FOR_PAYMENT", "totalCents": 5290 }
 ```
 
-**Erros**
+**Errors**
 
-| Status | Código | Causa |
+| Status | Code | Cause |
 |---|---|---|
-| 404 | `USER_NOT_FOUND` | Usuário inexistente |
-| 422 | `CART_EMPTY` | Carrinho vazio |
-| 422 | `CART_MIXED_COMPANIES` | Itens de empresas diferentes |
+| 404 | `USER_NOT_FOUND` | Non-existent user |
+| 422 | `CART_EMPTY` | Empty cart |
+| 422 | `CART_MIXED_COMPANIES` | Items from different companies |
 
-> **Defeito intencional (BUG-03):** o carrinho com empresas diferentes não é recusado. A rota retorna 200.
+> **Intentional defect (BUG-03):** a cart with different companies is not rejected. The route returns 200.
 
-## 11. `POST /users/:username/cart/pay` — Pagar
+## 11. `POST /users/:username/cart/pay` — Pay
 
-Regra: RN-17. Sem corpo. Pagamento simulado: em caso de sucesso, o carrinho é esvaziado.
+Rule: BR-17. No body. Simulated payment: on success, the cart is emptied.
 
-**Resposta 200** — contrato `payment`
+**Response 200** — `payment` contract
 
 ```json
-{ "status": "PAID", "totalCents": 5290, "message": "Pagamento Fake efetuado" }
+{ "status": "PAID", "totalCents": 5290, "message": "Fake payment completed" }
 ```
 
-**Erros**
+**Errors**
 
-| Status | Código | Causa |
+| Status | Code | Cause |
 |---|---|---|
-| 404 | `USER_NOT_FOUND` | Usuário inexistente |
-| 422 | `CART_EMPTY` | Carrinho vazio |
-| 422 | `CART_MIXED_COMPANIES` | Itens de empresas diferentes. O carrinho é mantido |
+| 404 | `USER_NOT_FOUND` | Non-existent user |
+| 422 | `CART_EMPTY` | Empty cart |
+| 422 | `CART_MIXED_COMPANIES` | Items from different companies. The cart is kept |
 
-## Contratos
+## Contracts
 
-| Contrato | Arquivo | Usado por |
+| Contract | File | Used by |
 |---|---|---|
 | `user` | `user.schema.json` | 1, 2, 3 |
 | `companies` | `companies.schema.json` | 4 |
-| `company` | `company.schema.json` | 5 e cada elemento de 4 |
+| `company` | `company.schema.json` | 5 and each element of 4 |
 | `cart` | `cart.schema.json` | 6, 7, 8, 9 |
 | `checkout` | `checkout.schema.json` | 10 |
 | `payment` | `payment.schema.json` | 11 |
-| `error` | `error.schema.json` | Todas as respostas de erro |
+| `error` | `error.schema.json` | Every error response |
 
-Os cenários que validam os contratos estão na seção 10 do [repositório de testes de API](./REPOSITORIO_TESTES_API.md) (`CT-API-CON-001` a `028`, tag `@contract`).
+The scenarios that validate the contracts are in section 10 of the [API test cases](./API_TEST_CASES.md) (`TC-API-CON-001` to `028`, tag `@contract`).

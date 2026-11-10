@@ -1,5 +1,5 @@
-// Mapa de objetos: seletor de cada elemento da interface usado nos testes.
-// Todo elemento tem um id único no HTML. Nos elementos repetidos, o id inclui o item.
+// Object map: the selector of every UI element used by the tests.
+// Every element has a unique id in the HTML. For repeated elements, the id includes the item.
 
 export const ObjectMap = {
   common: {

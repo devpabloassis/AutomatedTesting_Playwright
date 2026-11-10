@@ -14,7 +14,7 @@ function escapeHtml(value) {
 }
 
 function formatMoney(cents) {
-  return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  return (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 }
 
 function currentUser() {
@@ -77,8 +77,8 @@ function renderSession() {
   const username = currentUser();
   session.innerHTML = username
     ? `<span id="logged-user">${escapeHtml(username)}</span>
-       <button type="button" class="link-button" id="logout-button">Sair</button>`
-    : '<a href="/login" id="login-link" data-link>Entrar</a>';
+       <button type="button" class="link-button" id="logout-button">Sign out</button>`
+    : '<a href="/login" id="login-link" data-link>Sign in</a>';
 }
 
 function navigate(url) {
@@ -103,20 +103,20 @@ function pageHeader(title, subtitle) {
 }
 
 function notFound(title) {
-  view.innerHTML = `${pageHeader(title)}<a href="/" id="back-to-companies" data-link>Voltar às empresas</a>`;
+  view.innerHTML = `${pageHeader(title)}<a href="/" id="back-to-companies" data-link>Back to companies</a>`;
 }
 
 async function renderHome(token) {
   const companies = await api('GET', '/companies');
   if (token !== renderToken) return;
   view.innerHTML = `
-    ${pageHeader('Escolha uma empresa', 'Navegue pelos produtos, mesmo sem entrar na sua conta.')}
+    ${pageHeader('Choose a company', 'Browse the products, even without signing in.')}
     <div class="grid" id="company-list">
       ${companies
         .map((company) => {
           const id = `company-${escapeHtml(company.id)}`;
           return `
-            <a class="card" href="/empresas/${escapeHtml(company.id)}" id="${id}" data-link>
+            <a class="card" href="/companies/${escapeHtml(company.id)}" id="${id}" data-link>
               <h2 id="${id}-name">${escapeHtml(company.name)}</h2>
               <p class="muted" id="${id}-description">${escapeHtml(company.description)}</p>
             </a>`;
@@ -130,7 +130,7 @@ function productCard(product) {
   const id = `product-${escapeHtml(product.id)}`;
   const selector =
     product.options.length > 1
-      ? `<label>Tamanho
+      ? `<label>Size
           <select id="${id}-size" data-option-select>
             ${product.options
               .map(
@@ -146,7 +146,7 @@ function productCard(product) {
       <h2 id="${id}-name">${escapeHtml(product.name)}</h2>
       <p class="price" id="${id}-price" data-price-label>${formatMoney(first.priceCents)}</p>
       ${selector}
-      <button type="button" class="button" id="${id}-add" data-add>Adicionar ao carrinho</button>
+      <button type="button" class="button" id="${id}-add" data-add>Add to cart</button>
     </article>`;
 }
 
@@ -157,7 +157,7 @@ async function renderCompany(token, companyId) {
   } catch (error) {
     if (token !== renderToken) return;
     if (error.status !== 404) throw error;
-    notFound('Empresa não encontrada');
+    notFound('Company not found');
     return;
   }
   if (token !== renderToken) return;
@@ -174,7 +174,7 @@ async function addToCart(card) {
   if (!currentUser()) {
     const next = encodeURIComponent(location.pathname);
     navigate(`/login?next=${next}`);
-    showMessage('Entre na sua conta para adicionar produtos ao carrinho.', 'error');
+    showMessage('Sign in to add products to the cart.', 'error');
     return;
   }
 
@@ -193,13 +193,13 @@ async function addToCart(card) {
     } catch (error) {
       if (error.code !== 'CART_COMPANY_CONFLICT') throw error;
       const confirmed = await askConfirmation(
-        'Seu carrinho contém itens de outra empresa. Se continuar, o carrinho será limpo. Deseja continuar?',
+        'Your cart has items from another company. If you continue, the cart will be cleared. Do you want to continue?',
       );
       if (!confirmed) return;
       cart = await api('POST', cartUrl('/items'), { ...item, replaceCart: true });
     }
     updateCartCount(cart);
-    showMessage('Produto adicionado ao carrinho.');
+    showMessage('Product added to the cart.');
   } catch (error) {
     showMessage(error.message, 'error');
   }
@@ -211,11 +211,11 @@ function renderLogin() {
     return;
   }
   view.innerHTML = `
-    ${pageHeader('Entrar', 'Use sua conta para montar o carrinho.')}
+    ${pageHeader('Sign in', 'Use your account to build your cart.')}
     <form class="form" id="login-form">
-      <label>Usuário <input id="login-username" name="username" autocomplete="username" required /></label>
-      <label>Senha <input id="login-password" name="password" type="password" autocomplete="current-password" required /></label>
-      <button type="submit" class="button" id="login-submit">Entrar</button>
+      <label>Username <input id="login-username" name="username" autocomplete="username" required /></label>
+      <label>Password <input id="login-password" name="password" type="password" autocomplete="current-password" required /></label>
+      <button type="submit" class="button" id="login-submit">Sign in</button>
     </form>`;
 }
 
@@ -226,13 +226,13 @@ function cartItemRow(item) {
       <div>
         <h2 id="${id}-name">${escapeHtml(item.productName)}</h2>
         <p class="muted" id="${id}-details">${escapeHtml(item.companyName)} · ${escapeHtml(item.optionLabel)}</p>
-        <p>Unitário: <span id="${id}-unit-price">${formatMoney(item.unitPriceCents)}</span></p>
+        <p>Unit price: <span id="${id}-unit-price">${formatMoney(item.unitPriceCents)}</span></p>
         <p>Subtotal: <strong id="${id}-subtotal">${formatMoney(item.subtotalCents)}</strong></p>
       </div>
       <div class="item-controls">
-        <label>Quantidade <input type="number" min="1" max="99" step="1" value="${item.quantity}" id="${id}-quantity" data-quantity /></label>
-        <button type="button" class="button secondary" id="${id}-update" data-update>Atualizar</button>
-        <button type="button" class="button secondary" id="${id}-delete" data-delete>Excluir</button>
+        <label>Quantity <input type="number" min="1" max="99" step="1" value="${item.quantity}" id="${id}-quantity" data-quantity /></label>
+        <button type="button" class="button secondary" id="${id}-update" data-update>Update</button>
+        <button type="button" class="button secondary" id="${id}-delete" data-delete>Remove</button>
       </div>
     </article>`;
 }
@@ -241,19 +241,19 @@ function drawCart(cart, { ready = false } = {}) {
   updateCartCount(cart);
   if (cart.items.length === 0) {
     view.innerHTML = `
-      ${pageHeader('Carrinho')}
-      <p class="subtitle" id="cart-empty-message">Seu carrinho está vazio.</p>
-      <a class="button" href="/" id="cart-view-companies" data-link>Ver empresas</a>`;
+      ${pageHeader('Cart')}
+      <p class="subtitle" id="cart-empty-message">Your cart is empty.</p>
+      <a class="button" href="/" id="cart-view-companies" data-link>View companies</a>`;
     return;
   }
   view.innerHTML = `
-    ${pageHeader('Carrinho', 'Revise os itens antes de concluir o pedido.')}
+    ${pageHeader('Cart', 'Review your items before placing the order.')}
     <div class="cart-list" id="cart-list">${cart.items.map(cartItemRow).join('')}</div>
     <div class="summary">
       <p class="price">Total: <span id="cart-total">${formatMoney(cart.totalCents)}</span></p>
       <div class="actions">
-        <button type="button" class="button secondary" id="checkout-button">Finalizar pedido</button>
-        ${ready ? '<button type="button" class="button" id="pay-button">Pagar</button>' : ''}
+        <button type="button" class="button secondary" id="checkout-button">Checkout</button>
+        ${ready ? '<button type="button" class="button" id="pay-button">Pay</button>' : ''}
       </div>
     </div>`;
 }
@@ -261,9 +261,9 @@ function drawCart(cart, { ready = false } = {}) {
 async function renderCart(token) {
   if (!currentUser()) {
     view.innerHTML = `
-      ${pageHeader('Carrinho')}
-      <p class="subtitle" id="cart-login-message">Entre na sua conta para ver o carrinho.</p>
-      <a class="button" href="/login?next=%2Fcarrinho" id="cart-login-button" data-link>Entrar</a>`;
+      ${pageHeader('Cart')}
+      <p class="subtitle" id="cart-login-message">Sign in to view your cart.</p>
+      <a class="button" href="/login?next=%2Fcart" id="cart-login-button" data-link>Sign in</a>`;
     return;
   }
   const cart = await api('GET', cartUrl());
@@ -275,16 +275,16 @@ async function render() {
   renderSession();
   refreshCartCount();
   const { pathname } = location;
-  const companyMatch = pathname.match(/^\/empresas\/([^/]+)$/);
+  const companyMatch = pathname.match(/^\/companies\/([^/]+)$/);
 
   try {
     if (pathname === '/') await renderHome(token);
     else if (pathname === '/login') renderLogin();
-    else if (pathname === '/carrinho') await renderCart(token);
+    else if (pathname === '/cart') await renderCart(token);
     else if (companyMatch) await renderCompany(token, decodeURIComponent(companyMatch[1]));
-    else notFound('Página não encontrada');
+    else notFound('Page not found');
   } catch (error) {
-    if (token === renderToken) showMessage(error.message || 'Erro ao carregar a página.', 'error');
+    if (token === renderToken) showMessage(error.message || 'Failed to load the page.', 'error');
   }
 }
 
@@ -300,7 +300,7 @@ async function handleCartAction(target) {
     } else if (target.id === 'checkout-button') {
       await api('POST', cartUrl('/checkout'));
       drawCart(await api('GET', cartUrl()), { ready: true });
-      showMessage('Pedido Concluído');
+      showMessage('Order confirmed');
     } else if (target.id === 'pay-button') {
       const result = await api('POST', cartUrl('/pay'));
       drawCart(await api('GET', cartUrl()));

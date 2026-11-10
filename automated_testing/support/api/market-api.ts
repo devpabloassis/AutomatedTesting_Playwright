@@ -25,7 +25,7 @@ const encode = encodeURIComponent;
 export class MarketApi {
   constructor(private readonly http: APIRequestContext) {}
 
-  // Envia uma requisição para uma URL relativa à base (/api/...) ou absoluta.
+  // Sends a request to a URL relative to the base URL (/api/...) or to an absolute URL.
   send(method: string, url: string, body?: string) {
     return this.http.fetch(url, {
       method,

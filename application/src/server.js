@@ -10,7 +10,7 @@ const PORT = Number(process.env.PORT) || 3000;
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const MAX_BODY_BYTES = 100 * 1024;
 const MAX_QUANTITY = 99;
-const MIXED_MESSAGE = 'Existem itens de empresas diferentes no carrinho. Não é possível concluir o pedido.';
+const MIXED_MESSAGE = 'The cart has items from different companies. The order cannot be completed.';
 
 const STATIC_FILES = {
   '/app.js': ['app.js', 'text/javascript; charset=utf-8'],
@@ -33,19 +33,19 @@ function publicUser(user) {
 
 function requireUser(username) {
   const user = store.findUser(username);
-  if (!user) throw new ApiError(404, 'USER_NOT_FOUND', 'Usuário não encontrado.');
+  if (!user) throw new ApiError(404, 'USER_NOT_FOUND', 'User not found.');
   return user;
 }
 
 function requireItem(user, itemId) {
   const item = user.cart.find((candidate) => candidate.id === itemId);
-  if (!item) throw new ApiError(404, 'ITEM_NOT_FOUND', 'Item não encontrado no carrinho.');
+  if (!item) throw new ApiError(404, 'ITEM_NOT_FOUND', 'Item not found in the cart.');
   return item;
 }
 
 function requireQuantity(quantity) {
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY) {
-    throw validationError(`A quantidade deve ser um número inteiro de 1 a ${MAX_QUANTITY}.`);
+    throw validationError(`Quantity must be an integer from 1 to ${MAX_QUANTITY}.`);
   }
 }
 
@@ -78,7 +78,7 @@ function cartView(user) {
 
 function requirePayableCart(user) {
   const cart = cartView(user);
-  if (cart.items.length === 0) throw new ApiError(422, 'CART_EMPTY', 'O carrinho está vazio.');
+  if (cart.items.length === 0) throw new ApiError(422, 'CART_EMPTY', 'The cart is empty.');
   if (cart.hasMixedCompanies) throw new ApiError(422, 'CART_MIXED_COMPANIES', MIXED_MESSAGE);
   return cart;
 }
@@ -86,13 +86,13 @@ function requirePayableCart(user) {
 function createUser(_params, body) {
   const { username, password } = body;
   if (typeof username !== 'string' || !/^[A-Za-z0-9_]{3,30}$/.test(username)) {
-    throw validationError('O usuário deve ter de 3 a 30 caracteres: letras, números ou _.');
+    throw validationError('Username must be 3 to 30 characters long: letters, digits or _.');
   }
   if (typeof password !== 'string' || password.length < 8) {
-    throw validationError('A senha deve ter no mínimo 8 caracteres.');
+    throw validationError('Password must be at least 8 characters long.');
   }
   if (store.findUser(username)) {
-    throw new ApiError(409, 'USER_ALREADY_EXISTS', 'Este usuário já existe.');
+    throw new ApiError(409, 'USER_ALREADY_EXISTS', 'This user already exists.');
   }
   return { status: 201, body: publicUser(store.createUser(username, password)) };
 }
@@ -104,25 +104,25 @@ function getUser({ username }) {
 function login(_params, body) {
   const { username, password } = body;
   if (typeof username !== 'string' || typeof password !== 'string') {
-    throw validationError('Informe usuário e senha.');
+    throw validationError('Username and password are required.');
   }
   const user = store.findUser(username);
   if (!user || !store.verifyPassword(user, password)) {
-    throw new ApiError(401, 'INVALID_CREDENTIALS', 'Usuário ou senha inválidos.');
+    throw new ApiError(401, 'INVALID_CREDENTIALS', 'Invalid username or password.');
   }
   return { status: 200, body: publicUser(user) };
 }
 
 function listCompanies() {
-  // DEFEITO INTENCIONAL (BUG-04): o campo interno `commissionPercent` não faz parte do contrato
-  // e não deveria ser retornado. O correto é `body: catalog.companies`.
-  // Ver docs/HISTORIA_DO_PRODUTO.md, seção 10.
+  // INTENTIONAL DEFECT (BUG-04): the internal field `commissionPercent` is not part of the contract
+  // and should not be returned. The correct code is `body: catalog.companies`.
+  // See docs/PRODUCT_SPEC.md, section 10.
   return { status: 200, body: catalog.companies.map((company) => ({ ...company, commissionPercent: 12 })) };
 }
 
 function getCompany({ companyId }) {
   const company = catalog.findCompany(companyId);
-  if (!company) throw new ApiError(404, 'COMPANY_NOT_FOUND', 'Empresa não encontrada.');
+  if (!company) throw new ApiError(404, 'COMPANY_NOT_FOUND', 'Company not found.');
   return { status: 200, body: company };
 }
 
@@ -135,7 +135,7 @@ function addCartItem({ username }, body) {
   const { companyId, productId, optionId, quantity = 1, replaceCart = false } = body;
   requireQuantity(quantity);
   if (!catalog.resolveItem(companyId, productId, optionId)) {
-    throw validationError('Empresa, produto ou opção inválidos.');
+    throw validationError('Invalid company, product or option.');
   }
 
   const hasOtherCompany = user.cart.some((item) => item.companyId !== companyId);
@@ -143,18 +143,18 @@ function addCartItem({ username }, body) {
     throw new ApiError(
       409,
       'CART_COMPANY_CONFLICT',
-      'O carrinho contém itens de outra empresa. Se continuar, o carrinho será limpo.',
+      'The cart has items from another company. If you continue, the cart will be cleared.',
     );
   }
 
-  // DEFEITO INTENCIONAL (BUG-01): com replaceCart, o carrinho deveria ser limpo aqui,
-  // com `user.cart = []`. Ver docs/HISTORIA_DO_PRODUTO.md, seção 10.
+  // INTENTIONAL DEFECT (BUG-01): with replaceCart, the cart should be cleared here
+  // with `user.cart = []`. See docs/PRODUCT_SPEC.md, section 10.
 
   const existing = user.cart.find(
     (item) => item.companyId === companyId && item.productId === productId && item.optionId === optionId,
   );
   if (existing && existing.quantity + quantity > MAX_QUANTITY) {
-    throw new ApiError(422, 'QUANTITY_LIMIT_EXCEEDED', `A quantidade do item não pode passar de ${MAX_QUANTITY}.`);
+    throw new ApiError(422, 'QUANTITY_LIMIT_EXCEEDED', `Item quantity cannot exceed ${MAX_QUANTITY}.`);
   }
 
   if (existing) {
@@ -171,8 +171,8 @@ function updateCartItem({ username, itemId }, body) {
   const item = requireItem(user, itemId);
   requireQuantity(body.quantity);
 
-  // DEFEITO INTENCIONAL (BUG-02): o correto é `item.quantity = body.quantity`.
-  // Ver docs/HISTORIA_DO_PRODUTO.md, seção 10.
+  // INTENTIONAL DEFECT (BUG-02): the correct code is `item.quantity = body.quantity`.
+  // See docs/PRODUCT_SPEC.md, section 10.
   item.quantity = body.quantity * 2;
 
   store.save();
@@ -189,10 +189,10 @@ function deleteCartItem({ username, itemId }) {
 
 function checkout({ username }) {
   const cart = cartView(requireUser(username));
-  if (cart.items.length === 0) throw new ApiError(422, 'CART_EMPTY', 'O carrinho está vazio.');
+  if (cart.items.length === 0) throw new ApiError(422, 'CART_EMPTY', 'The cart is empty.');
 
-  // DEFEITO INTENCIONAL (BUG-03): o carrinho com empresas diferentes deveria ser recusado aqui,
-  // com `requirePayableCart`. Ver docs/HISTORIA_DO_PRODUTO.md, seção 10.
+  // INTENTIONAL DEFECT (BUG-03): a cart with different companies should be rejected here
+  // with `requirePayableCart`. See docs/PRODUCT_SPEC.md, section 10.
 
   return { status: 200, body: { status: 'READY_FOR_PAYMENT', totalCents: cart.totalCents } };
 }
@@ -204,7 +204,7 @@ function pay({ username }) {
   store.save();
   return {
     status: 200,
-    body: { status: 'PAID', totalCents: cart.totalCents, message: 'Pagamento Fake efetuado' },
+    body: { status: 'PAID', totalCents: cart.totalCents, message: 'Fake payment completed' },
   };
 }
 
@@ -232,7 +232,7 @@ async function readJson(request) {
   let size = 0;
   for await (const chunk of request) {
     size += chunk.length;
-    if (size > MAX_BODY_BYTES) throw validationError('O corpo da requisição é muito grande.');
+    if (size > MAX_BODY_BYTES) throw validationError('Request body is too large.');
     chunks.push(chunk);
   }
   if (size === 0) return {};
@@ -240,10 +240,10 @@ async function readJson(request) {
   try {
     body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
   } catch {
-    throw validationError('O corpo da requisição deve ser um JSON válido.');
+    throw validationError('Request body must be valid JSON.');
   }
   if (body === null || typeof body !== 'object' || Array.isArray(body)) {
-    throw validationError('O corpo da requisição deve ser um objeto JSON.');
+    throw validationError('Request body must be a JSON object.');
   }
   return body;
 }
@@ -251,10 +251,10 @@ async function readJson(request) {
 async function handleApi(request, response, pathname) {
   try {
     const matching = routes.filter(([, pattern]) => pattern.test(pathname));
-    if (matching.length === 0) throw new ApiError(404, 'NOT_FOUND', 'Rota não encontrada.');
+    if (matching.length === 0) throw new ApiError(404, 'NOT_FOUND', 'Route not found.');
 
     const route = matching.find(([method]) => method === request.method);
-    if (!route) throw new ApiError(405, 'METHOD_NOT_ALLOWED', 'Método não permitido.');
+    if (!route) throw new ApiError(405, 'METHOD_NOT_ALLOWED', 'Method not allowed.');
 
     const [, pattern, names, handler] = route;
     const values = pattern.exec(pathname).slice(1).map(decodeURIComponent);
@@ -265,10 +265,10 @@ async function handleApi(request, response, pathname) {
     if (error instanceof ApiError) {
       sendJson(response, error.status, { code: error.code, message: error.message });
     } else if (error instanceof URIError) {
-      sendJson(response, 400, { code: 'VALIDATION_ERROR', message: 'URL inválida.' });
+      sendJson(response, 400, { code: 'VALIDATION_ERROR', message: 'Invalid URL.' });
     } else {
       console.error(error);
-      sendJson(response, 500, { code: 'INTERNAL_ERROR', message: 'Erro interno.' });
+      sendJson(response, 500, { code: 'INTERNAL_ERROR', message: 'Internal error.' });
     }
   }
 }
@@ -291,5 +291,5 @@ http
     }
   })
   .listen(PORT, HOST, () => {
-    console.log(`Marketplace de Comida em http://${HOST}:${PORT}`);
+    console.log(`Food Marketplace running at http://${HOST}:${PORT}`);
   });

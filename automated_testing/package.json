@@ -1,7 +1,7 @@
 {
-  "name": "marketplace-comida-testes",
+  "name": "food-marketplace-tests",
   "version": "1.0.0",
-  "description": "Testes automatizados de API e Web com Playwright",
+  "description": "Automated API and Web tests with Playwright and BDD",
   "private": true,
   "engines": {
     "node": ">=22"
@@ -13,12 +13,12 @@
     "test:smoke": "bddgen && playwright test --grep @smoke",
     "test:regression": "bddgen && playwright test --grep @regression",
     "test:login": "bddgen && playwright test --grep @feature_login",
-    "test:carrinho": "bddgen && playwright test --grep @feature_carrinho",
+    "test:cart": "bddgen && playwright test --grep @feature_cart",
     "test:domain": "bddgen && playwright test --grep @domain",
     "test:sqli": "bddgen && playwright test --grep @sqli",
     "test:contract": "bddgen && playwright test --grep @contract",
-    "test:sem-bugs": "bddgen && playwright test --grep-invert @known_bug",
-    "test:bugs": "bddgen && playwright test --grep @known_bug",
+    "test:no-bugs": "bddgen && playwright test --grep-invert @known_bug",
+    "test:known-bugs": "bddgen && playwright test --grep @known_bug",
     "test:ui": "bddgen && playwright test --ui",
     "report": "playwright show-report",
     "typecheck": "tsc --noEmit",

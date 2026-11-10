@@ -4,12 +4,10 @@ import { defineBddProject } from 'playwright-bdd';
 const PORT = process.env.TEST_PORT ?? '3100';
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
-const bdd = { language: 'pt' };
-
 export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  // Sem retentativas: os defeitos intencionais devem aparecer como falhas diretas.
+  // No retries: the intentional defects must show up as direct failures.
   retries: 0,
   reporter: [
     ['list'],
@@ -29,14 +27,12 @@ export default defineConfig({
   },
   projects: [
     defineBddProject({
-      ...bdd,
       name: 'api',
       features: 'features/api/*.feature',
       steps: ['support/fixtures.ts', 'steps/common.steps.ts', 'steps/api.steps.ts'],
     }),
     {
       ...defineBddProject({
-        ...bdd,
         name: 'web-chromium',
         features: 'features/web/*.feature',
         steps: ['support/fixtures.ts', 'steps/common.steps.ts', 'steps/web.steps.ts'],

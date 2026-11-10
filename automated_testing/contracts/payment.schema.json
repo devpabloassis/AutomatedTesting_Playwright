@@ -1,7 +1,7 @@
 {
   "$id": "payment",
-  "title": "Pagamento",
-  "description": "Resposta de POST /api/users/:username/cart/pay.",
+  "title": "Payment",
+  "description": "Response of POST /api/users/:username/cart/pay.",
   "type": "object",
   "additionalProperties": false,
   "required": ["status", "totalCents", "message"],

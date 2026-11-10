@@ -5,7 +5,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 
 const SERVER_SCRIPT = path.resolve(__dirname, '../../application/src/server.js');
 
-// Servidor e banco próprios, para cenários que precisam reiniciar o sistema.
+// Dedicated server and database, for scenarios that need to restart the system.
 export class IsolatedServer {
   private process?: ChildProcess;
   readonly url: string;
@@ -30,7 +30,7 @@ export class IsolatedServer {
         await delay(100);
       }
     }
-    throw new Error(`O servidor não iniciou na porta ${this.port}.`);
+    throw new Error(`The server did not start on port ${this.port}.`);
   }
 
   async stop() {

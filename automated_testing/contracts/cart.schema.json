@@ -1,7 +1,7 @@
 {
   "$id": "cart",
-  "title": "Carrinho",
-  "description": "Resposta de GET /cart, POST /cart/items, PATCH e DELETE /cart/items/:itemId.",
+  "title": "Cart",
+  "description": "Response of GET /cart, POST /cart/items, and PATCH and DELETE /cart/items/:itemId.",
   "type": "object",
   "additionalProperties": false,
   "required": ["username", "items", "companyIds", "hasMixedCompanies", "totalItems", "totalCents"],
@@ -35,7 +35,7 @@
         "companyName": { "type": "string", "minLength": 1 },
         "productId": { "type": "string", "minLength": 1 },
         "productName": { "type": "string", "minLength": 1 },
-        "optionId": { "type": "string", "enum": ["P", "M", "G", "U"] },
+        "optionId": { "type": "string", "enum": ["S", "M", "L", "R"] },
         "optionLabel": { "type": "string", "minLength": 1 },
         "unitPriceCents": { "type": "integer", "minimum": 1 },
         "quantity": { "type": "integer", "minimum": 1 },

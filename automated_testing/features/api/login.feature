@@ -1,55 +1,54 @@
-# language: pt
 @api @regression @feature_login
-Funcionalidade: Login
-  Como consumidor da API
-  Quero validar usuário e senha
-  Para conceder acesso somente a credenciais corretas
+Feature: Login
+  As an API consumer
+  I want to validate username and password
+  So that access is granted only to correct credentials
 
   @smoke
-  Cenário: CT-API-LOG-001 - Credenciais válidas
-    Dado que existe um usuário novo
-    Quando envio "POST" para "/login" com o corpo:
+  Scenario: TC-API-LOG-001 - Valid credentials
+    Given a new user exists
+    When I send "POST" to "/login" with the body:
       """
-      { "username": "{usuario}", "password": "senhaValida1" }
+      { "username": "{user}", "password": "validPass1" }
       """
-    Então o status da resposta deve ser 200
-    E a resposta deve conter:
+    Then the response status should be 200
+    And the response should contain:
       """
-      { "username": "{usuario}" }
+      { "username": "{user}" }
       """
-    E a resposta não deve conter dados de senha
+    And the response should not contain password data
 
   @smoke
-  Cenário: CT-API-LOG-002 - Login dos pré-cadastrados
-    Então cada usuário abaixo deve conseguir fazer login com a senha "loveMetalSongs@":
+  Scenario: TC-API-LOG-002 - Seed users can log in
+    Then each user below should be able to log in with the password "loveMetalSongs@":
       | user_manual |
       | user_robot  |
       | user_hybrid |
       | user_fail   |
 
-  Esquema do Cenário: <id> - <titulo>
-    Quando envio "POST" para "/login" com o corpo:
+  Scenario Outline: <id> - <title>
+    When I send "POST" to "/login" with the body:
       """
-      { "username": "<usuario>", "password": "<senha>" }
+      { "username": "<username>", "password": "<password>" }
       """
-    Então a resposta deve ser um erro 401 com o código "INVALID_CREDENTIALS"
-    E a mensagem de erro deve ser "Usuário ou senha inválidos."
+    Then the response should be a 401 error with code "INVALID_CREDENTIALS"
+    And the error message should be "Invalid username or password."
 
-    Exemplos:
-      | id             | titulo                          | usuario      | senha           |
-      | CT-API-LOG-003 | Senha incorreta                 | user_manual  | senhaErrada1    |
-      | CT-API-LOG-004 | Usuário inexistente             | {nome_unico} | loveMetalSongs@ |
-      | CT-API-LOG-005 | Senha com maiúsculas diferentes | user_manual  | LOVEMETALSONGS@ |
+    Examples:
+      | id             | title                        | username      | password        |
+      | TC-API-LOG-003 | Wrong password               | user_manual   | wrongPass1      |
+      | TC-API-LOG-004 | Non-existent user            | {unique_name} | loveMetalSongs@ |
+      | TC-API-LOG-005 | Password with different case | user_manual   | LOVEMETALSONGS@ |
 
-  Esquema do Cenário: <id> - <titulo>
-    Quando envio "POST" para "/login" com o corpo:
+  Scenario Outline: <id> - <title>
+    When I send "POST" to "/login" with the body:
       """
-      <corpo>
+      <body>
       """
-    Então a resposta deve ser um erro 400 com o código "VALIDATION_ERROR"
+    Then the response should be a 400 error with code "VALIDATION_ERROR"
 
-    Exemplos:
-      | id             | titulo                   | corpo                                  |
-      | CT-API-LOG-006 | Sem usuário              | { "password": "loveMetalSongs@" }      |
-      | CT-API-LOG-007 | Sem senha                | { "username": "user_manual" }          |
-      | CT-API-LOG-008 | Campos que não são texto | { "username": 123, "password": 123 }   |
+    Examples:
+      | id             | title             | body                                 |
+      | TC-API-LOG-006 | Missing username  | { "password": "loveMetalSongs@" }    |
+      | TC-API-LOG-007 | Missing password  | { "username": "user_manual" }        |
+      | TC-API-LOG-008 | Non-string fields | { "username": 123, "password": 123 } |

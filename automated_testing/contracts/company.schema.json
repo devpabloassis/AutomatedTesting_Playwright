@@ -1,7 +1,7 @@
 {
   "$id": "company",
-  "title": "Empresa",
-  "description": "Resposta de GET /api/companies/:companyId e cada elemento de GET /api/companies.",
+  "title": "Company",
+  "description": "Response of GET /api/companies/:companyId and each element of GET /api/companies.",
   "type": "object",
   "additionalProperties": false,
   "required": ["id", "name", "description", "products"],
@@ -35,8 +35,8 @@
       "additionalProperties": false,
       "required": ["id", "label", "priceCents"],
       "properties": {
-        "id": { "type": "string", "enum": ["P", "M", "G", "U"] },
-        "label": { "type": "string", "enum": ["Pequeno", "Médio", "Grande", "Único"] },
+        "id": { "type": "string", "enum": ["S", "M", "L", "R"] },
+        "label": { "type": "string", "enum": ["Small", "Medium", "Large", "Regular"] },
         "priceCents": { "type": "integer", "minimum": 1 }
       }
     }

@@ -24,7 +24,7 @@ export class CompanyPage {
   }
 
   async open(companyId: string) {
-    await this.page.goto(`/empresas/${companyId}`);
+    await this.page.goto(`/companies/${companyId}`);
   }
 
   product(productId: string) {

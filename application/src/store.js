@@ -17,7 +17,7 @@ function load() {
 
 const db = load();
 
-// As operações são síncronas: cada requisição grava por completo antes da próxima.
+// Operations are synchronous: each request is fully written before the next one.
 function save() {
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
   const temporaryPath = `${DB_PATH}.tmp`;

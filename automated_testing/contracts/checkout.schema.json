@@ -1,7 +1,7 @@
 {
   "$id": "checkout",
-  "title": "Pedido finalizado",
-  "description": "Resposta de POST /api/users/:username/cart/checkout.",
+  "title": "Checkout",
+  "description": "Response of POST /api/users/:username/cart/checkout.",
   "type": "object",
   "additionalProperties": false,
   "required": ["status", "totalCents"],

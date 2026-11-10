@@ -1,7 +1,7 @@
 {
   "$id": "error",
-  "title": "Erro",
-  "description": "Corpo de toda resposta de erro (status 4xx e 5xx).",
+  "title": "Error",
+  "description": "Body of every error response (4xx and 5xx status).",
   "type": "object",
   "additionalProperties": false,
   "required": ["code", "message"],

@@ -14,7 +14,7 @@ export interface ApiResponseData {
   json: any;
 }
 
-// Estado compartilhado entre os passos de um mesmo cenário.
+// State shared between the steps of a single scenario.
 export interface World {
   username?: string;
   otherUsername?: string;
@@ -42,7 +42,7 @@ interface MarketFixtures {
 }
 
 export const test = base.extend<MarketFixtures>({
-  // Usa um contexto próprio para não depender da sessão da página.
+  // Uses its own context so it does not depend on the page session.
   api: async ({ playwright, baseURL }, use) => {
     const http = await playwright.request.newContext({ baseURL });
     await use(new MarketApi(http));

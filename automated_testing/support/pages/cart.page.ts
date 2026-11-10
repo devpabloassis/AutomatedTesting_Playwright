@@ -5,7 +5,7 @@ const map = ObjectMap.cart;
 
 export class CartPage {
   readonly total: Locator;
-  readonly finalize: Locator;
+  readonly checkout: Locator;
   readonly pay: Locator;
   readonly emptyMessage: Locator;
   readonly viewCompanies: Locator;
@@ -14,7 +14,7 @@ export class CartPage {
 
   constructor(private readonly page: Page) {
     this.total = page.locator(map.total);
-    this.finalize = page.locator(map.checkoutButton);
+    this.checkout = page.locator(map.checkoutButton);
     this.pay = page.locator(map.payButton);
     this.emptyMessage = page.locator(map.emptyMessage);
     this.viewCompanies = page.locator(map.viewCompaniesLink);
@@ -23,7 +23,7 @@ export class CartPage {
   }
 
   async open() {
-    await this.page.goto('/carrinho');
+    await this.page.goto('/cart');
   }
 
   row(productId: string, optionId: string) {

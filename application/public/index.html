@@ -1,18 +1,18 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Marketplace de Comida</title>
+    <title>Food Marketplace</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <header class="site-header">
       <div class="container header-row">
-        <a class="brand" id="header-brand" href="/" data-link>Marketplace de Comida</a>
-        <nav class="header-nav" aria-label="Principal">
-          <a class="cart-link" id="header-cart-link" href="/carrinho" data-link>
-            Carrinho <span class="badge" id="cart-count">0</span>
+        <a class="brand" id="header-brand" href="/" data-link>Food Marketplace</a>
+        <nav class="header-nav" aria-label="Main">
+          <a class="cart-link" id="header-cart-link" href="/cart" data-link>
+            Cart <span class="badge" id="cart-count">0</span>
           </a>
           <span id="session"></span>
         </nav>
@@ -25,11 +25,11 @@
     </main>
 
     <dialog id="confirm-dialog" class="confirm" aria-labelledby="confirm-title">
-      <h2 id="confirm-title">Trocar de empresa?</h2>
+      <h2 id="confirm-title">Switch company?</h2>
       <p id="confirm-text"></p>
       <div class="actions">
-        <button type="button" class="button secondary" id="confirm-no">Não</button>
-        <button type="button" class="button" id="confirm-yes">Sim</button>
+        <button type="button" class="button secondary" id="confirm-no">No</button>
+        <button type="button" class="button" id="confirm-yes">Yes</button>
       </div>
     </dialog>
 

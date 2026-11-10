@@ -1,17 +1,17 @@
-// Passos usados tanto nos cenários de API quanto nos cenários Web.
+// Steps shared by the API and Web scenarios.
 import { expect } from '@playwright/test';
 import { MarketApi } from '../support/api/market-api';
 import { BURGER, PIZZA } from '../support/data';
 import { Given, Then, When, World } from '../support/fixtures';
 
-// Referência de item no formato "empresa/produto/opção", por exemplo "pizzaria/portuguesa/M".
+// Item reference in the "company/product/option" format, for example "pizzeria/supreme/M".
 export function parseItem(reference: string) {
   const [companyId, productId, optionId] = reference.split('/');
   return { companyId, productId, optionId };
 }
 
 export function required<T>(value: T | undefined, description: string): T {
-  if (value === undefined) throw new Error(`O cenário ainda não definiu ${description}.`);
+  if (value === undefined) throw new Error(`The scenario has not defined ${description} yet.`);
   return value;
 }
 
@@ -19,89 +19,89 @@ const productList = (text: string) => text.split(',').map((product) => product.t
 
 async function seedItem(api: MarketApi, world: World, reference: string, quantity: number) {
   const item = parseItem(reference);
-  const cart = await api.seedItem(required(world.username, 'o usuário'), { ...item, quantity });
+  const cart = await api.seedItem(required(world.username, 'the user'), { ...item, quantity });
   world.itemId ??= cart.items.find(
     (candidate) => candidate.productId === item.productId && candidate.optionId === item.optionId,
   )?.id;
 }
 
-Given('que existe um usuário novo', async ({ api, world }) => {
+Given('a new user exists', async ({ api, world }) => {
   world.username = await api.newUser();
 });
 
-Given('que existe outro usuário novo com o item {string}', async ({ api, world }, reference: string) => {
+Given('another new user exists with the item {string}', async ({ api, world }, reference: string) => {
   world.otherUsername = await api.newUser();
   const cart = await api.seedItem(world.otherUsername, parseItem(reference));
   world.otherItemId = cart.items[0].id;
 });
 
-Given('que o carrinho do usuário tem o item {string}', async ({ api, world }, reference: string) => {
+Given("the user's cart has the item {string}", async ({ api, world }, reference: string) => {
   await seedItem(api, world, reference, 1);
 });
 
 Given(
-  'que o carrinho do usuário tem o item {string} com quantidade {int}',
+  "the user's cart has the item {string} with quantity {int}",
   async ({ api, world }, reference: string, quantity: number) => {
     await seedItem(api, world, reference, quantity);
   },
 );
 
-// Só é possível montar este carrinho por causa do BUG-01.
-Given('que o carrinho do usuário tem itens de empresas diferentes', async ({ api, world }) => {
-  const username = required(world.username, 'o usuário');
+// This cart can only be built because of BUG-01.
+Given("the user's cart has items from different companies", async ({ api, world }) => {
+  const username = required(world.username, 'the user');
   const cart = await api.seedItem(username, PIZZA);
   world.itemId ??= cart.items[0].id;
   await api.seedItem(username, { ...BURGER, replaceCart: true });
 });
 
-When('o carrinho é esvaziado em outra sessão', async ({ api, world }) => {
-  await api.emptyCart(required(world.username, 'o usuário'));
+When('the cart is emptied in another session', async ({ api, world }) => {
+  await api.emptyCart(required(world.username, 'the user'));
 });
 
 When(
-  'o carrinho recebe em outra sessão o item {string} com troca de empresa',
+  'the cart receives the item {string} with a company switch in another session',
   async ({ api, world }, reference: string) => {
-    await api.seedItem(required(world.username, 'o usuário'), { ...parseItem(reference), replaceCart: true });
+    await api.seedItem(required(world.username, 'the user'), { ...parseItem(reference), replaceCart: true });
   },
 );
 
-When('guardo o estado do carrinho', async ({ api, world }) => {
-  world.cartSnapshot = await api.cart(required(world.username, 'o usuário'));
+When('I save the cart state', async ({ api, world }) => {
+  world.cartSnapshot = await api.cart(required(world.username, 'the user'));
 });
 
-Then('o carrinho do usuário deve ter {int} item/itens', async ({ api, world }, count: number) => {
-  expect((await api.cart(required(world.username, 'o usuário'))).items).toHaveLength(count);
+Then("the user's cart should have {int} item(s)", async ({ api, world }, count: number) => {
+  expect((await api.cart(required(world.username, 'the user'))).items).toHaveLength(count);
 });
 
-Then('o carrinho do usuário deve conter somente os produtos {string}', async ({ api, world }, products: string) => {
-  const cart = await api.cart(required(world.username, 'o usuário'));
+Then("the user's cart should contain only the products {string}", async ({ api, world }, products: string) => {
+  const cart = await api.cart(required(world.username, 'the user'));
   expect(cart.items.map((item) => item.productId)).toEqual(productList(products));
 });
 
 Then(
-  'o carrinho do usuário deve conter o item {string} com quantidade {int}',
+  "the user's cart should contain the item {string} with quantity {int}",
   async ({ api, world }, reference: string, quantity: number) => {
-    const cart = await api.cart(required(world.username, 'o usuário'));
+    const cart = await api.cart(required(world.username, 'the user'));
     expect(cart.items).toContainEqual(expect.objectContaining({ ...parseItem(reference), quantity }));
   },
 );
 
-Then('a quantidade do item no carrinho deve ser {int}', async ({ api, world }, quantity: number) => {
-  const cart = await api.cart(required(world.username, 'o usuário'));
-  const item = cart.items.find((candidate) => candidate.id === required(world.itemId, 'o item'));
+Then('the item quantity in the cart should be {int}', async ({ api, world }, quantity: number) => {
+  const cart = await api.cart(required(world.username, 'the user'));
+  const item = cart.items.find((candidate) => candidate.id === required(world.itemId, 'the item'));
   expect(item?.quantity).toBe(quantity);
 });
 
-Then('o carrinho do outro usuário deve ter {int} item/itens', async ({ api, world }, count: number) => {
-  expect((await api.cart(required(world.otherUsername, 'o outro usuário'))).items).toHaveLength(count);
+Then("the other user's cart should have {int} item(s)", async ({ api, world }, count: number) => {
+  expect((await api.cart(required(world.otherUsername, 'the other user'))).items).toHaveLength(count);
 });
 
-Then('a quantidade do item do outro usuário deve ser {int}', async ({ api, world }, quantity: number) => {
-  const cart = await api.cart(required(world.otherUsername, 'o outro usuário'));
+Then("the other user's item quantity should be {int}", async ({ api, world }, quantity: number) => {
+  const cart = await api.cart(required(world.otherUsername, 'the other user'));
   expect(cart.items.find((item) => item.id === world.otherItemId)?.quantity).toBe(quantity);
 });
 
-Then('o carrinho do usuário não deve ter mudado', async ({ api, world }) => {
-  const cart = await api.cart(required(world.username, 'o usuário'));
-  expect(cart).toEqual(required(world.cartSnapshot, 'o estado guardado do carrinho'));
+Then("the user's cart should not have changed", async ({ api, world }) => {
+  const cart = await api.cart(required(world.username, 'the user'));
+  expect(cart).toEqual(required(world.cartSnapshot, 'the saved cart state'));
 });

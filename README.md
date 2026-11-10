@@ -1,69 +1,81 @@
-# Automação de Testes com Playwright
+# Test Automation with Playwright
 
-Projeto de estudo de automação de testes de **API** e **Web** com [Playwright](https://playwright.dev) e **BDD** (Gherkin em português).
+**English** | [Português (Brasil)](README.pt-BR.md)
 
-O repositório tem duas partes:
+**API** and **Web** test automation project built with [Playwright](https://playwright.dev), TypeScript and **BDD** (Gherkin).
 
-- **`application/`**: um marketplace de comida, que é o sistema testado. Tem API e interface Web, e contém **defeitos inseridos de propósito** para que os testes falhem em pontos conhecidos.
-- **`automated_testing/`**: o projeto de testes automatizados, com 385 testes de API, Web, contrato, caracteres de domínio e SQL injection.
+The repository has two parts:
 
-## O sistema testado
+- **`application/`**: a food marketplace, the system under test. It has an API and a Web UI, and it contains **defects inserted on purpose** so that the tests fail at known points.
+- **`automated_testing/`**: the automated test project, with 385 tests covering API, Web, contracts, field domain characters and SQL injection.
 
-Marketplace com 4 empresas (pizzaria, hamburgueria, comida japonesa e sucos), cada uma com 4 produtos.
+## Highlights
 
-- Navegar pelo catálogo sem login.
-- Fazer login e montar um carrinho.
-- O carrinho aceita itens de uma única empresa. Ao escolher um produto de outra empresa, aparece um aviso perguntando se o carrinho deve ser limpo.
-- Alterar a quantidade e excluir itens.
-- Finalizar o pedido e fazer um pagamento fake.
+- **BDD with Gherkin** through [playwright-bdd](https://vitalets.github.io/playwright-bdd): every scenario is traceable to a documented test case ID (`TC-API-*`, `TC-WEB-*`).
+- **Page Object Model** plus a central **object map** with stable `id` selectors.
+- **Contract testing** with JSON Schema and [Ajv](https://ajv.js.org), with readable violation messages.
+- **Data-driven tests** with `Scenario Outline` (field domain and SQL injection payloads).
+- **Parallel and isolated:** each scenario creates its own user through the API; persistence scenarios start their own server and database.
+- **Known defects tracked with tags** (`@known_bug`), so the suite separates real regressions from expected failures.
+- Reports in HTML and JUnit, with traces and screenshots on failure.
 
-Tecnologia: Node.js 22, sem dependências externas. Os dados ficam em um arquivo JSON.
+## The system under test
 
-Usuários pré-cadastrados: `user_manual`, `user_robot`, `user_hybrid` e `user_fail`, todos com a senha `loveMetalSongs@`.
+A marketplace with 4 companies (pizzeria, burgers, Japanese food and juices), each with 4 products.
 
-### Defeitos intencionais
+- Browse the catalog without logging in.
+- Log in and build a cart.
+- The cart accepts items from a single company. When a product from another company is chosen, a warning asks whether the cart should be cleared.
+- Update quantities and remove items.
+- Check out and make a fake payment.
 
-Estes defeitos **não devem ser corrigidos**. Eles existem para mostrar como os testes detectam problemas. No código, estão marcados com o comentário `DEFEITO INTENCIONAL`.
+Technology: Node.js 22, with no external dependencies. Data is stored in a JSON file.
 
-| Defeito | Comportamento |
+Seed users: `user_manual`, `user_robot`, `user_hybrid` and `user_fail`, all with the password `loveMetalSongs@`.
+
+### Intentional defects
+
+These defects **must not be fixed**. They exist to show how the tests detect problems. In the code, they are marked with the `INTENTIONAL DEFECT` comment.
+
+| Defect | Behavior |
 |---|---|
-| BUG-01 | Ao confirmar a troca de empresa, o carrinho não é limpo |
-| BUG-02 | Ao alterar a quantidade de um item, o valor é gravado em dobro |
-| BUG-03 | O pedido com itens de empresas diferentes é concluído |
-| BUG-04 | A listagem de empresas traz um campo que não está no contrato da API |
+| BUG-01 | When the company switch is confirmed, the cart is not cleared |
+| BUG-02 | When an item quantity is updated, the value is stored doubled |
+| BUG-03 | An order with items from different companies is accepted |
+| BUG-04 | The company list returns a field that is not in the API contract |
 
-## Estrutura
+## Structure
 
 ```text
 AutomatedTesting_Playwright/
-├── application/                 # Sistema testado
-│   ├── src/                     # API (server.js), catálogo e armazenamento
-│   └── public/                  # Interface Web
-├── automated_testing/           # Projeto de testes
+├── application/                 # System under test
+│   ├── src/                     # API (server.js), catalog and storage
+│   └── public/                  # Web UI
+├── automated_testing/           # Test project
 │   ├── features/
-│   │   ├── api/                 # Cenários de API em Gherkin
-│   │   └── web/                 # Cenários Web em Gherkin
-│   ├── steps/                   # Implementação dos passos do Gherkin
-│   ├── support/                 # Fixtures, cliente da API, Page Objects e mapa de objetos
-│   ├── contracts/               # JSON Schemas para os testes de contrato
+│   │   ├── api/                 # API scenarios in Gherkin
+│   │   └── web/                 # Web scenarios in Gherkin
+│   ├── steps/                   # Step definitions
+│   ├── support/                 # Fixtures, API client, Page Objects and object map
+│   ├── contracts/               # JSON Schemas for the contract tests
 │   └── playwright.config.ts
-└── docs/                        # Documentação
+└── docs/                        # Documentation
 ```
 
-## Como executar
+## Getting started
 
-Pré-requisito: Node.js 22 ou superior.
+Prerequisite: Node.js 22 or later.
 
-### Usar o sistema manualmente
+### Run the system manually
 
 ```bash
 cd application
 npm start
 ```
 
-Acesse `http://127.0.0.1:3000`.
+Open `http://127.0.0.1:3000`.
 
-### Executar os testes
+### Run the tests
 
 ```bash
 cd automated_testing
@@ -72,59 +84,58 @@ npx playwright install chromium
 npm test
 ```
 
-Não é preciso subir o sistema antes: o Playwright inicia a aplicação na porta `3100`, com um banco limpo, e a encerra no final.
+There is no need to start the system first: Playwright starts the application on port `3100`, with a clean database, and stops it at the end.
 
-| Comando | O que executa |
+| Command | What it runs |
 |---|---|
-| `npm test` | Todos os testes |
-| `npm run test:api` | Somente API |
-| `npm run test:web` | Somente Web |
-| `npm run test:smoke` | Testes de fumaça |
-| `npm run test:contract` | Testes de contrato |
-| `npm run test:sem-bugs` | Tudo, exceto os cenários dos defeitos intencionais |
-| `npm run test:bugs` | Somente os cenários dos defeitos intencionais |
-| `npm run report` | Abre o relatório HTML da última execução |
+| `npm test` | All tests |
+| `npm run test:api` | API only |
+| `npm run test:web` | Web only |
+| `npm run test:smoke` | Smoke tests |
+| `npm run test:contract` | Contract tests |
+| `npm run test:no-bugs` | Everything except the intentional defect scenarios |
+| `npm run test:known-bugs` | Only the intentional defect scenarios |
+| `npm run report` | Opens the HTML report of the last run |
 
-### Resultado esperado
+### Expected result
 
 ```text
   15 failed
   370 passed
 ```
 
-As **15 falhas são esperadas**: cada uma corresponde a um dos defeitos intencionais. O motivo de cada falha está explicado no [guia de execução](docs/execucao_testes.md#52-falhas-previstas). Para uma execução sem falhas, use `npm run test:sem-bugs`.
+The **15 failures are expected**: each one maps to one of the intentional defects. The reason for each failure is explained in the [test execution guide](docs/TEST_EXECUTION.md#52-expected-failures). For a run without failures, use `npm run test:no-bugs`.
 
-## Exemplo de cenário
+## Example scenario
 
 ```gherkin
-# language: pt
-Funcionalidade: Troca de empresa
+Feature: Company switch
 
   @smoke @known_bug
-  Cenário: CT-WEB-TRO-006 - Contador após Sim
-    Dado que estou logado com um usuário novo
-    E que o carrinho do usuário tem o item "pizzaria/portuguesa/M"
-    E que estou na página "/empresas/hamburgueria"
-    Quando adiciono o produto "duplo" ao carrinho
-    E confirmo a troca de empresa com "Sim"
-    Então o contador do carrinho deve mostrar "1"
+  Scenario: TC-WEB-SWT-006 - Counter after Yes
+    Given I am logged in as a new user
+    And the user's cart has the item "pizzeria/supreme/M"
+    And I am on the page "/companies/burgers"
+    When I add the product "double" to the cart
+    And I answer the company switch warning with "Yes"
+    Then the cart counter should show "1"
 ```
 
-Cada cenário cria o próprio usuário pela API. Por isso os testes rodam em paralelo sem interferir uns nos outros.
+Each scenario creates its own user through the API. That is why the tests run in parallel without interfering with each other.
 
-## Documentação
+## Documentation
 
-| Documento | Conteúdo |
+| Document | Content |
 |---|---|
-| [`docs/HISTORIA_DO_PRODUTO.md`](docs/HISTORIA_DO_PRODUTO.md) | Regras de negócio, histórias de usuário, critérios de aceite e defeitos intencionais |
-| [`docs/API_ENDPOINTS.md`](docs/API_ENDPOINTS.md) | Os 11 endpoints da API, com exemplos, erros e contratos |
-| [`docs/REPOSITORIO_TESTES_API.md`](docs/REPOSITORIO_TESTES_API.md) | Catálogo dos cenários de teste de API |
-| [`docs/REPOSITORIO_TESTES_WEB.md`](docs/REPOSITORIO_TESTES_WEB.md) | Catálogo dos cenários de teste Web |
-| [`docs/execucao_testes.md`](docs/execucao_testes.md) | Como executar, filtrar por tags e validar o resultado, e o motivo de cada falha prevista |
+| [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) | Business rules, user stories, acceptance criteria and intentional defects |
+| [`docs/API_ENDPOINTS.md`](docs/API_ENDPOINTS.md) | The 11 API endpoints, with examples, errors and contracts |
+| [`docs/API_TEST_CASES.md`](docs/API_TEST_CASES.md) | Catalog of the API test cases |
+| [`docs/WEB_TEST_CASES.md`](docs/WEB_TEST_CASES.md) | Catalog of the Web test cases |
+| [`docs/TEST_EXECUTION.md`](docs/TEST_EXECUTION.md) | How to run, filter by tag and validate the results, and the reason for each expected failure |
 
-## Tecnologias
+## Tech stack
 
-- [Playwright](https://playwright.dev) 1.65 com TypeScript
-- [playwright-bdd](https://vitalets.github.io/playwright-bdd) para os cenários em Gherkin
-- [Ajv](https://ajv.js.org) para validação de JSON Schema nos testes de contrato
-- Node.js 22 no sistema testado, sem dependências externas
+- [Playwright](https://playwright.dev) 1.65 with TypeScript
+- [playwright-bdd](https://vitalets.github.io/playwright-bdd) for the Gherkin scenarios
+- [Ajv](https://ajv.js.org) for JSON Schema validation in the contract tests
+- Node.js 22 for the system under test, with no external dependencies

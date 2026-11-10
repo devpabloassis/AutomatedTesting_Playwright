@@ -1,407 +1,406 @@
-# language: pt
 @api @regression @security @sqli
-Funcionalidade: SQL injection
-  Como responsável pela segurança da API
-  Quero garantir que payloads de SQL injection sejam tratados como texto comum
-  Para que nenhum dado seja exposto ou alterado
+Feature: SQL injection
+  As the person responsible for API security
+  I want SQL injection payloads to be treated as plain text
+  So that no data is exposed or changed
 
-  # Cada esquema roda uma vez para cada um dos 8 payloads da tabela de exemplos.
+  # Each outline runs once for each of the 8 payloads in the examples table.
 
-  Esquema do Cenário: CT-API-SQL-001 [<payload_id>] - Criar usuário com username malicioso
-    Dado o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-001 [<payload_id>] - Create user with a malicious username
+    Given the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "POST" para "/users" com o corpo:
+    When I send "POST" to "/users" with the body:
       """
-      { "username": "{payload}", "password": "senhaValida1" }
+      { "username": "{payload}", "password": "validPass1" }
       """
-    Então a resposta deve ser um erro 400 com o código "VALIDATION_ERROR"
-    Quando envio "GET" para "/users/{payload}"
-    Então a resposta deve ser um erro 404 com o código "USER_NOT_FOUND"
+    Then the response should be a 400 error with code "VALIDATION_ERROR"
+    When I send "GET" to "/users/{payload}"
+    Then the response should be a 404 error with code "USER_NOT_FOUND"
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
-  Esquema do Cenário: CT-API-SQL-002 [<payload_id>] - Criar usuário com password malicioso
-    Dado o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-002 [<payload_id>] - Create user with a malicious password
+    Given the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "POST" para "/users" com o corpo:
+    When I send "POST" to "/users" with the body:
       """
-      { "username": "{nome_unico}", "password": "{payload}" }
+      { "username": "{unique_name}", "password": "{payload}" }
       """
-    Então o status da resposta deve ser 201
-    E a resposta não deve conter o payload
+    Then the response status should be 201
+    And the response should not contain the payload
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
-  Esquema do Cenário: CT-API-SQL-003 [<payload_id>] - Login com senha igual ao payload
-    Dado o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-003 [<payload_id>] - Log in with the payload as the password
+    Given the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "POST" para "/users" com o corpo:
+    When I send "POST" to "/users" with the body:
       """
-      { "username": "{nome_unico}", "password": "{payload}" }
+      { "username": "{unique_name}", "password": "{payload}" }
       """
-    Então o status da resposta deve ser 201
-    E o login com as credenciais enviadas deve ter status 200
+    Then the response status should be 201
+    And logging in with the sent credentials should return status 200
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
   @feature_login
-  Esquema do Cenário: CT-API-SQL-004 [<payload_id>] - Login com username malicioso
-    Dado o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-004 [<payload_id>] - Log in with a malicious username
+    Given the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "POST" para "/login" com o corpo:
+    When I send "POST" to "/login" with the body:
       """
       { "username": "{payload}", "password": "loveMetalSongs@" }
       """
-    Então a resposta deve ser um erro 401 com o código "INVALID_CREDENTIALS"
+    Then the response should be a 401 error with code "INVALID_CREDENTIALS"
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
   @feature_login
-  Esquema do Cenário: CT-API-SQL-005 [<payload_id>] - Login com password malicioso
-    Dado o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-005 [<payload_id>] - Log in with a malicious password
+    Given the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "POST" para "/login" com o corpo:
+    When I send "POST" to "/login" with the body:
       """
       { "username": "user_manual", "password": "{payload}" }
       """
-    Então a resposta deve ser um erro 401 com o código "INVALID_CREDENTIALS"
+    Then the response should be a 401 error with code "INVALID_CREDENTIALS"
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
-  Esquema do Cenário: CT-API-SQL-006 [<payload_id>] - Consultar usuário
-    Dado o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-006 [<payload_id>] - Fetch user
+    Given the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "GET" para "/users/{payload}"
-    Então a resposta deve ser um erro 404 com o código "USER_NOT_FOUND"
+    When I send "GET" to "/users/{payload}"
+    Then the response should be a 404 error with code "USER_NOT_FOUND"
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
-  Esquema do Cenário: CT-API-SQL-007 [<payload_id>] - Consultar empresa
-    Dado o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-007 [<payload_id>] - Fetch company
+    Given the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "GET" para "/companies/{payload}"
-    Então a resposta deve ser um erro 404 com o código "COMPANY_NOT_FOUND"
+    When I send "GET" to "/companies/{payload}"
+    Then the response should be a 404 error with code "COMPANY_NOT_FOUND"
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
-  Esquema do Cenário: CT-API-SQL-008 [<payload_id>] - Consultar carrinho
-    Dado o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-008 [<payload_id>] - Fetch cart
+    Given the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "GET" para "/users/{payload}/cart"
-    Então a resposta deve ser um erro 404 com o código "USER_NOT_FOUND"
+    When I send "GET" to "/users/{payload}/cart"
+    Then the response should be a 404 error with code "USER_NOT_FOUND"
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
-  Esquema do Cenário: CT-API-SQL-009 [<payload_id>] - Adicionar item com companyId malicioso
-    Dado que existe um usuário novo
-    E o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-009 [<payload_id>] - Add item with a malicious companyId
+    Given a new user exists
+    And the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "POST" para "/users/{usuario}/cart/items" com o corpo:
+    When I send "POST" to "/users/{user}/cart/items" with the body:
       """
-      { "companyId": "{payload}", "productId": "portuguesa", "optionId": "M" }
+      { "companyId": "{payload}", "productId": "supreme", "optionId": "M" }
       """
-    Então a resposta deve ser um erro 400 com o código "VALIDATION_ERROR"
-    E o carrinho do usuário deve ter 0 itens
+    Then the response should be a 400 error with code "VALIDATION_ERROR"
+    And the user's cart should have 0 items
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
-  Esquema do Cenário: CT-API-SQL-010 [<payload_id>] - Adicionar item com productId malicioso
-    Dado que existe um usuário novo
-    E o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-010 [<payload_id>] - Add item with a malicious productId
+    Given a new user exists
+    And the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "POST" para "/users/{usuario}/cart/items" com o corpo:
+    When I send "POST" to "/users/{user}/cart/items" with the body:
       """
-      { "companyId": "pizzaria", "productId": "{payload}", "optionId": "M" }
+      { "companyId": "pizzeria", "productId": "{payload}", "optionId": "M" }
       """
-    Então a resposta deve ser um erro 400 com o código "VALIDATION_ERROR"
-    E o carrinho do usuário deve ter 0 itens
+    Then the response should be a 400 error with code "VALIDATION_ERROR"
+    And the user's cart should have 0 items
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
-  Esquema do Cenário: CT-API-SQL-011 [<payload_id>] - Adicionar item com optionId malicioso
-    Dado que existe um usuário novo
-    E o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-011 [<payload_id>] - Add item with a malicious optionId
+    Given a new user exists
+    And the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "POST" para "/users/{usuario}/cart/items" com o corpo:
+    When I send "POST" to "/users/{user}/cart/items" with the body:
       """
-      { "companyId": "pizzaria", "productId": "portuguesa", "optionId": "{payload}" }
+      { "companyId": "pizzeria", "productId": "supreme", "optionId": "{payload}" }
       """
-    Então a resposta deve ser um erro 400 com o código "VALIDATION_ERROR"
-    E o carrinho do usuário deve ter 0 itens
+    Then the response should be a 400 error with code "VALIDATION_ERROR"
+    And the user's cart should have 0 items
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
-  Esquema do Cenário: CT-API-SQL-012 [<payload_id>] - Adicionar item com quantity malicioso
-    Dado que existe um usuário novo
-    E o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-012 [<payload_id>] - Add item with a malicious quantity
+    Given a new user exists
+    And the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "POST" para "/users/{usuario}/cart/items" com o corpo:
+    When I send "POST" to "/users/{user}/cart/items" with the body:
       """
-      { "companyId": "pizzaria", "productId": "portuguesa", "optionId": "M", "quantity": "{payload}" }
+      { "companyId": "pizzeria", "productId": "supreme", "optionId": "M", "quantity": "{payload}" }
       """
-    Então a resposta deve ser um erro 400 com o código "VALIDATION_ERROR"
-    E o carrinho do usuário deve ter 0 itens
+    Then the response should be a 400 error with code "VALIDATION_ERROR"
+    And the user's cart should have 0 items
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
-  Esquema do Cenário: CT-API-SQL-013 [<payload_id>] - Adicionar item com replaceCart malicioso
-    Dado que existe um usuário novo
-    E que o carrinho do usuário tem o item "pizzaria/portuguesa/M"
-    E o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-013 [<payload_id>] - Add item with a malicious replaceCart
+    Given a new user exists
+    And the user's cart has the item "pizzeria/supreme/M"
+    And the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "POST" para "/users/{usuario}/cart/items" com o corpo:
+    When I send "POST" to "/users/{user}/cart/items" with the body:
       """
-      { "companyId": "hamburgueria", "productId": "duplo", "optionId": "U", "replaceCart": "{payload}" }
+      { "companyId": "burgers", "productId": "double", "optionId": "R", "replaceCart": "{payload}" }
       """
-    Então a resposta deve ser um erro 409 com o código "CART_COMPANY_CONFLICT"
-    E o carrinho do usuário deve ter 1 item
+    Then the response should be a 409 error with code "CART_COMPANY_CONFLICT"
+    And the user's cart should have 1 item
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
-  Esquema do Cenário: CT-API-SQL-014 [<payload_id>] - Alterar item com quantity malicioso
-    Dado que existe um usuário novo
-    E que o carrinho do usuário tem o item "pizzaria/portuguesa/M"
-    E o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-014 [<payload_id>] - Update item with a malicious quantity
+    Given a new user exists
+    And the user's cart has the item "pizzeria/supreme/M"
+    And the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "PATCH" para "/users/{usuario}/cart/items/{item}" com o corpo:
+    When I send "PATCH" to "/users/{user}/cart/items/{item}" with the body:
       """
       { "quantity": "{payload}" }
       """
-    Então a resposta deve ser um erro 400 com o código "VALIDATION_ERROR"
-    E a quantidade do item no carrinho deve ser 1
+    Then the response should be a 400 error with code "VALIDATION_ERROR"
+    And the item quantity in the cart should be 1
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
-  Esquema do Cenário: CT-API-SQL-015 [<payload_id>] - Alterar item com itemId malicioso
-    Dado que existe um usuário novo
-    E que o carrinho do usuário tem o item "pizzaria/portuguesa/M"
-    E o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-015 [<payload_id>] - Update item with a malicious itemId
+    Given a new user exists
+    And the user's cart has the item "pizzeria/supreme/M"
+    And the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "PATCH" para "/users/{usuario}/cart/items/{payload}" com o corpo:
+    When I send "PATCH" to "/users/{user}/cart/items/{payload}" with the body:
       """
       { "quantity": 2 }
       """
-    Então a resposta deve ser um erro 404 com o código "ITEM_NOT_FOUND"
-    E a quantidade do item no carrinho deve ser 1
+    Then the response should be a 404 error with code "ITEM_NOT_FOUND"
+    And the item quantity in the cart should be 1
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
-  Esquema do Cenário: CT-API-SQL-016 [<payload_id>] - Excluir item com itemId malicioso
-    Dado que existe um usuário novo
-    E que o carrinho do usuário tem o item "pizzaria/portuguesa/M"
-    E o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-016 [<payload_id>] - Remove item with a malicious itemId
+    Given a new user exists
+    And the user's cart has the item "pizzeria/supreme/M"
+    And the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "DELETE" para "/users/{usuario}/cart/items/{payload}"
-    Então a resposta deve ser um erro 404 com o código "ITEM_NOT_FOUND"
-    E o carrinho do usuário deve ter 1 item
+    When I send "DELETE" to "/users/{user}/cart/items/{payload}"
+    Then the response should be a 404 error with code "ITEM_NOT_FOUND"
+    And the user's cart should have 1 item
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
-  Esquema do Cenário: CT-API-SQL-017 [<payload_id>] - Finalizar e pagar com username malicioso
-    Dado o payload de SQL injection:
+  Scenario Outline: TC-API-SQL-017 [<payload_id>] - Check out and pay with a malicious username
+    Given the SQL injection payload:
       """
       <payload>
       """
-    Quando envio "POST" para "/users/{payload}/cart/checkout"
-    Então a resposta deve ser um erro 404 com o código "USER_NOT_FOUND"
-    Quando envio "POST" para "/users/{payload}/cart/pay"
-    Então a resposta deve ser um erro 404 com o código "USER_NOT_FOUND"
+    When I send "POST" to "/users/{payload}/cart/checkout"
+    Then the response should be a 404 error with code "USER_NOT_FOUND"
+    When I send "POST" to "/users/{payload}/cart/pay"
+    Then the response should be a 404 error with code "USER_NOT_FOUND"
 
-    Exemplos:
-      | payload_id | payload                                         |
-      | SQL-01     | ' OR '1'='1                                     |
-      | SQL-02     | ' OR 1=1--                                      |
-      | SQL-03     | admin'--                                        |
-      | SQL-04     | '; DROP TABLE users;--                          |
-      | SQL-05     | " OR ""="                                       |
-      | SQL-06     | ' UNION SELECT username, password FROM users--  |
-      | SQL-07     | 1; SELECT pg_sleep(5)--                         |
-      | SQL-08     | ') OR ('1'='1                                   |
+    Examples:
+      | payload_id | payload                                        |
+      | SQL-01     | ' OR '1'='1                                    |
+      | SQL-02     | ' OR 1=1--                                     |
+      | SQL-03     | admin'--                                       |
+      | SQL-04     | '; DROP TABLE users;--                         |
+      | SQL-05     | " OR ""="                                      |
+      | SQL-06     | ' UNION SELECT username, password FROM users-- |
+      | SQL-07     | 1; SELECT pg_sleep(5)--                        |
+      | SQL-08     | ') OR ('1'='1                                  |
 
   @smoke
-  Cenário: CT-API-SQL-018 - Integridade depois dos ataques
-    Então cada usuário abaixo deve ser encontrado na consulta:
+  Scenario: TC-API-SQL-018 - Integrity after the attacks
+    Then each user below should be found:
       | user_manual |
       | user_robot  |
       | user_hybrid |
       | user_fail   |
-    E cada usuário abaixo deve conseguir fazer login com a senha "loveMetalSongs@":
+    And each user below should be able to log in with the password "loveMetalSongs@":
       | user_manual |
       | user_robot  |
       | user_hybrid |

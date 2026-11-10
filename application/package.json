@@ -1,7 +1,7 @@
 {
-  "name": "marketplace-comida",
+  "name": "food-marketplace",
   "version": "1.0.0",
-  "description": "Sistema-alvo para automação de testes",
+  "description": "System under test for the automated test suite",
   "private": true,
   "engines": { "node": ">=22" },
   "scripts": {

@@ -1,7 +1,7 @@
 {
   "$id": "companies",
-  "title": "Lista de empresas",
-  "description": "Resposta de GET /api/companies.",
+  "title": "Company list",
+  "description": "Response of GET /api/companies.",
   "type": "array",
   "minItems": 1,
   "items": { "$ref": "company" }
