@@ -24,6 +24,21 @@ O repositório tem duas partes:
 - **Integração contínua** com GitHub Actions: typecheck, a suíte sem os defeitos conhecidos como critério de aprovação e a verificação de que os 15 defeitos conhecidos continuam falhando.
 - Relatórios HTML e JUnit, com trace e screenshot nas falhas.
 
+## Como o projeto foi construído
+
+O projeto simula o fluxo de trabalho de um time de QA real, da história até a suíte automatizada:
+
+1. **Especificação primeiro.** Escrevi a história do produto, as regras de negócio, as histórias de usuário e os critérios de aceite em [`PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md). A testabilidade faz parte dos requisitos: todo elemento usado pela automação precisa ter um `id` único e estável.
+2. **Defeitos intencionais.** Deixei defeitos de propósito na aplicação, para que a suíte **não** passe em 100%. Isso prova que os testes realmente detectam problemas e mostra como os defeitos conhecidos são controlados sem esconder regressões novas.
+3. **Casos de teste a partir dos requisitos.** Os cenários foram extraídos das histórias e dos critérios de aceite e documentados com IDs em [`WEB_TEST_CASES.md`](docs/WEB_TEST_CASES.md) e [`API_TEST_CASES.md`](docs/API_TEST_CASES.md), já que não há uma ferramenta de gestão de testes conectada ao projeto.
+4. **Automação.** Cada caso de teste documentado virou um cenário BDD com o mesmo ID, organizado nas suítes `web` e `api`.
+
+**Com apoio de IA, conduzido por QA.** Usei o [Claude](https://www.anthropic.com/claude) (Anthropic) para extrair os cenários de teste a partir dos requisitos e para criar os cenários automatizados, seguindo as minhas especificações: estratégia de testes, escopo, níveis de cobertura, arquitetura (BDD, Page Objects e mapa de objetos), padrões de nomes e de tags. Revisei os cenários e o código e validei os resultados com base nos defeitos intencionais.
+
+### Por que ids estáveis em vez de XPath ou self-healing locators
+
+O `id` é um contrato entre desenvolvimento e QA: ele não muda quando o layout, o texto ou o estilo mudam, então o teste só quebra quando o comportamento quebra. XPath preso à estrutura da página é frágil, e self-healing locators podem se "corrigir" sozinhos para o elemento errado e esconder uma regressão real. Por isso a especificação exige ids, e o projeto de testes mantém todos eles em um único mapa de objetos.
+
 ## O sistema testado
 
 Marketplace com 4 empresas (pizzaria, hamburgueria, comida japonesa e sucos), cada uma com 4 produtos. É possível navegar sem login, montar um carrinho de uma única empresa (com aviso ao trocar de empresa), alterar e excluir itens, finalizar o pedido e fazer um pagamento fake.

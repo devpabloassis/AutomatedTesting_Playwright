@@ -22,6 +22,21 @@ The repository has two parts:
 - **Continuous integration** with GitHub Actions: type check, the full suite without known defects as the gate, and a check that the 15 known defects still fail.
 - Reports in HTML and JUnit, with traces and screenshots on failure.
 
+## How this project was built
+
+The project simulates the workflow of a real QA team, from the user story to the automated suite:
+
+1. **Specification first.** I wrote the product story, business rules, user stories and acceptance criteria in [`PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md). Testability is part of the requirements: every element used by the automation must have a unique, stable `id`.
+2. **Intentional defects.** I left defects in the application on purpose, so the suite does **not** pass at 100%. This proves that the tests really detect problems, and shows how known defects are tracked without hiding new regressions.
+3. **Test cases from the requirements.** The scenarios were extracted from the stories and acceptance criteria and documented with IDs in [`WEB_TEST_CASES.md`](docs/WEB_TEST_CASES.md) and [`API_TEST_CASES.md`](docs/API_TEST_CASES.md), since there is no separate test management tool connected to the project.
+4. **Automation.** Each documented test case became a BDD scenario with the same ID, organized in `web` and `api` suites.
+
+**AI-assisted, QA-driven.** I used [Claude](https://www.anthropic.com/claude) (Anthropic) to extract the test scenarios from the requirements and to create the automated scenarios, following my specifications: test strategy, scope, coverage levels, architecture (BDD, Page Objects and object map), naming and tag conventions. I reviewed the scenarios and the code, and validated the results against the intentional defects.
+
+### Why stable ids instead of XPath or self-healing locators
+
+An `id` is a contract between development and QA: it does not change when the layout, the text or the styling changes, so a test breaks only when the behavior breaks. XPath tied to the page structure is fragile, and self-healing locators can silently "heal" onto the wrong element and hide a real regression. That is why the specification requires ids and the test project keeps all of them in a single object map.
+
 ## The system under test
 
 A marketplace with 4 companies (pizzeria, burgers, Japanese food and juices), each with 4 products.
