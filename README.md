@@ -29,7 +29,7 @@ The project simulates the workflow of a real QA team, from the user story to the
 1. **Specification first.** I wrote the product story, business rules, user stories and acceptance criteria in [`PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md). Testability is part of the requirements: every element used by the automation must have a unique, stable `id`.
 2. **Intentional defects.** I left defects in the application on purpose, so the suite does **not** pass at 100%. This proves that the tests really detect problems, and shows how known defects are tracked without hiding new regressions.
 3. **Test cases from the requirements.** The scenarios were extracted from the stories and acceptance criteria and documented with IDs in [`WEB_TEST_CASES.md`](docs/WEB_TEST_CASES.md) and [`API_TEST_CASES.md`](docs/API_TEST_CASES.md), since there is no separate test management tool connected to the project.
-4. **Automation.** Each documented test case became a BDD scenario with the same ID, organized in `web` and `api` suites.
+4. **Automation.** Each documented test case became a BDD scenario with the same ID, organized in 17 suites (`.feature` files) in the `web` and `api` folders.
 
 **AI-assisted, QA-driven.** I used [Claude](https://www.anthropic.com/claude) (Anthropic) to extract the test scenarios from the requirements and to create the automated scenarios, following my specifications: test strategy, scope, coverage levels, architecture (BDD, Page Objects and object map), naming and tag conventions. I reviewed the scenarios and the code, and validated the results against the intentional defects.
 
